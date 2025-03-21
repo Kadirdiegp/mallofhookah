@@ -1,15 +1,30 @@
 import { useState } from 'react'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 
 // Components
 import Layout from './components/layout/Layout'
 import AgeVerification from './components/modals/AgeVerification'
 
 // Pages
-import HomePage from './pages/HomePage'
+import { 
+  HomePage,
+  HookahsPage, 
+  VapesPage, 
+  TobaccoPage, 
+  AccessoriesPage, 
+  SearchPage, 
+  CartPage,
+  LoginPage,
+  RegisterPage,
+  CheckoutPage,
+  NotFoundPage,
+  AuthCallbackPage,
+  ProfilePage
+} from './pages'
 import TailwindTestPage from './pages/TailwindTestPage'
-import NotFoundPage from './pages/NotFoundPage'
+import TestEmailPage from './pages/TestEmailPage'
+import OrderSuccessPage from './pages/OrderSuccessPage'
 
 // Initialize React Query client
 const queryClient = new QueryClient()
@@ -26,21 +41,25 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/hookahs" element={<HookahsPage />} />
+            <Route path="/vapes" element={<VapesPage />} />
+            <Route path="/tobacco" element={<TobaccoPage />} />
+            <Route path="/accessories" element={<AccessoriesPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/checkout/success" element={<OrderSuccessPage />} />
             <Route path="/test" element={<TailwindTestPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/test-email" element={<TestEmailPage />} />
             <Route path="*" element={<NotFoundPage />} />
             {/* Additional routes will be uncommented as we create these pages */}
             {/* 
-            <Route path="/products" element={<ProductListPage />} />
-            <Route path="/products/:category" element={<ProductListPage />} />
             <Route path="/product/:id" element={<ProductDetailPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
-            <Route path="/admin/products" element={<AdminProductsPage />} />
-            <Route path="/admin/orders" element={<AdminOrdersPage />} />
             */}
           </Routes>
         </Layout>

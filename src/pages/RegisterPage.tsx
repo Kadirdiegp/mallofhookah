@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const { signUp, signInWithGoogle } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -59,20 +61,38 @@ const RegisterPage = () => {
     setIsLoading(true);
 
     try {
-      // For demo purposes - would be replaced with actual registration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Register with Supabase Auth
+      const { user } = await signUp(formData.email, formData.password);
       
-      // Simulate a successful registration
-      navigate('/login', { 
-        state: { 
-          message: 'Registration successful! Please log in with your new account.' 
-        } 
-      });
-    } catch (err) {
-      setError('An error occurred during registration. Please try again.');
+      if (user) {
+        // If email confirmation is enabled in Supabase, show a message
+        navigate('/login', { 
+          state: { 
+            message: 'Registration successful! Please check your email to confirm your account.' 
+          } 
+        });
+      } else {
+        // If email confirmation is not required, user is signed in automatically
+        navigate('/');
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during registration. Please try again.';
+      setError(errorMessage);
       console.error('Registration error:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError('');
+    try {
+      await signInWithGoogle();
+      // No need to navigate - the OAuth flow will redirect
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred during Google login. Please try again.';
+      setError(errorMessage);
+      console.error('Google login error:', err);
     }
   };
 
@@ -224,55 +244,29 @@ const RegisterPage = () => {
           </div>
         </form>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">Or sign up with</span>
+              <span className="px-2 bg-white text-gray-500">Or sign up with</span>
             </div>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-3">
+          <div className="mt-6">
             <button
               type="button"
-              className="w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+              onClick={handleGoogleSignIn}
+              className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <div className="flex items-center justify-center">
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
-                  <path
-                    fill="#EA4335"
-                    d="M12 5c1.617 0 3.082.573 4.241 1.5l3.176-3.13A11.495 11.495 0 0 0 12 0C7.392 0 3.474 2.632 1.367 6.5l3.733 2.898C6.175 6.528 8.858 5 12 5z"
-                  />
-                  <path
-                    fill="#4285F4"
-                    d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.1 14.51C4.89 13.73 4.76 12.91 4.76 12s.13-1.73.34-2.51L1.37 6.5C.499 8.13 0 10.02 0 12c0 1.98.499 3.87 1.37 5.5l3.73-2.99z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.14 0-5.82-2.12-6.79-4.97l-3.73 2.99C3.47 21.39 7.39 24 12 24z"
-                  />
-                </svg>
-                Google
-              </div>
-            </button>
-            <button
-              type="button"
-              className="w-full py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              <div className="flex items-center justify-center">
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="#1877F2">
-                  <path
-                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                  />
-                </svg>
-                Facebook
-              </div>
+              <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5c1.617 0 3.082.573 4.241 1.5l3.176-3.13A11.495 11.495 0 0 0 12 0C7.392 0 3.474 2.632 1.367 6.5l3.733 2.898C6.175 6.528 8.858 5 12 5z" fill="#EA4335" />
+                <path d="M23.610 12.166c0-.815-.073-1.6-.21-2.352H12v4.448h6.521a5.605 5.605 0 0 1-2.419 3.676l3.695 2.868A11.496 11.496 0 0 0 24 12.166h-.39z" fill="#4285F4" />
+                <path d="M5.011 14.402a6.889 6.889 0 0 1-.366-2.233c0-.776.132-1.526.366-2.233L1.276 6.5C.465 8.238 0 10.2 0 12.166c0 1.969.465 3.931 1.276 5.668l3.733-2.898c-.234-.707-.366-1.458-.366-2.233" fill="#FBBC05" />
+                <path d="M12 18.33c3.14 0 5.778-1.04 7.7-2.83l-3.695-2.867a7.238 7.238 0 0 1-4.015 1.14c-3.143 0-5.824-2.118-6.774-4.978L1.366 11.64C2.615 15.514 6.36 18.33 12 18.33" fill="#34A853" />
+              </svg>
+              Sign up with Google
             </button>
           </div>
         </div>

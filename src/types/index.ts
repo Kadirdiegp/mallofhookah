@@ -20,10 +20,22 @@ export type OrderItem = Database['public']['Tables']['order_items']['Row'];
 export type OrderItemInsert = Database['public']['Tables']['order_items']['Insert'];
 export type OrderItemUpdate = Database['public']['Tables']['order_items']['Update'];
 
-// User profile type
-export type Profile = Database['public']['Tables']['profiles']['Row'];
-export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
-export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+// User profile type - auskommentieren, da profiles nicht in der Datenbank existiert
+// export type Profile = Database['public']['Tables']['profiles']['Row'];
+// export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+// export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+
+// Stattdessen einen benutzerdefinierten Typ verwenden
+export type Profile = {
+  id: string;
+  user_id: string;
+  username?: string;
+  full_name?: string;
+  avatar_url?: string;
+  email?: string;
+  created_at?: string;
+  updated_at?: string;
+};
 
 // Shopping cart item
 export type CartItem = {
@@ -37,6 +49,7 @@ export type CartItem = {
 
 // Shipping address
 export type ShippingAddress = {
+  id?: string | number; // ID für die Beziehung zur orders-Tabelle
   firstName: string;
   lastName: string;
   address1: string;

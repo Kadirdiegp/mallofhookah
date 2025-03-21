@@ -1,23 +1,73 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/cart';
+import { useAuth } from '../../hooks/useAuth';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const totalItems = useCartStore(state => state.totalItems());
+  const { user, signOut } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
   };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (isUserMenuOpen && !target.closest('.user-menu-container')) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isUserMenuOpen]);
+
+  // Get user display name or email
+  const getUserDisplayName = () => {
+    if (!user) return null;
+    
+    // Try to get display name from Google metadata
+    const googleName = user.user_metadata?.full_name || 
+                      user.user_metadata?.name ||
+                      user.app_metadata?.provider === 'google' && user.email?.split('@')[0];
+    
+    return googleName || user.email?.split('@')[0] || 'User';
+  };
+
+  // Get user avatar if available
+  const getUserAvatar = () => {
+    if (!user) return null;
+    
+    return user.user_metadata?.avatar_url || 
+           user.user_metadata?.picture ||
+           null;
   };
 
   return (
@@ -52,16 +102,16 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <Link to="/products/hookah" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/hookahs" className="text-secondary hover:text-primary transition-colors">
               Hookahs
             </Link>
-            <Link to="/products/vapes" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/vapes" className="text-secondary hover:text-primary transition-colors">
               Vapes
             </Link>
-            <Link to="/products/tobacco" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/tobacco" className="text-secondary hover:text-primary transition-colors">
               Tobacco
             </Link>
-            <Link to="/products/accessories" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/accessories" className="text-secondary hover:text-primary transition-colors">
               Accessories
             </Link>
           </nav>
@@ -119,22 +169,90 @@ const Header = () => {
                 </span>
               )}
             </Link>
-            <Link to="/login" className="p-2 hover:text-primary transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                />
-              </svg>
-            </Link>
+            
+            {/* User Menu */}
+            {user ? (
+              <div className="relative user-menu-container">
+                <button 
+                  onClick={toggleUserMenu}
+                  className="flex items-center p-2 hover:text-primary transition-colors"
+                >
+                  {getUserAvatar() ? (
+                    <img 
+                      src={getUserAvatar()} 
+                      alt="Profile" 
+                      className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                    />
+                  ) : (
+                    <div className="flex items-center">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                      <span className="ml-2 text-sm font-medium">{getUserDisplayName()}</span>
+                    </div>
+                  )}
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+                    {user.app_metadata?.provider === 'google' && (
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="text-xs text-gray-500">Signed in with Google</p>
+                        <p className="text-sm font-medium truncate">{user.email}</p>
+                      </div>
+                    )}
+                    <Link 
+                      to="/profile" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Your Profile
+                    </Link>
+                    <Link 
+                      to="/profile?tab=orders" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Your Orders
+                    </Link>
+                    <button
+                      onClick={handleSignOut}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/login" className="p-2 hover:text-primary transition-colors">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -143,28 +261,28 @@ const Header = () => {
           <div className="lg:hidden mt-4 py-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-3">
               <Link 
-                to="/products/hookah" 
+                to="/hookahs" 
                 className="hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 Hookahs
               </Link>
               <Link 
-                to="/products/vapes" 
+                to="/vapes" 
                 className="hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 Vapes
               </Link>
               <Link 
-                to="/products/tobacco" 
+                to="/tobacco" 
                 className="hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 Tobacco
               </Link>
               <Link 
-                to="/products/accessories" 
+                to="/accessories" 
                 className="hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >

@@ -12,5 +12,13 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    // Stellen Sie sicher, dass wir beim Aktualisieren der Seite die Sitzung wiederherstellen
+    storageKey: 'supabase-auth',
   },
+  global: {
+    // Stellen Sie sicher, dass der Authorization-Header mit dem aktuellen Benutzer-Token gesetzt wird
+    headers: {
+      'X-Client-Info': 'mallofhookah-web'
+    }
+  }
 });

@@ -18,10 +18,10 @@ const NotFoundPage = () => {
             Return Home
           </Link>
           <Link
-            to="/products"
+            to="/hookahs"
             className="px-6 py-3 bg-gray-200 text-gray-800 font-medium rounded-md hover:bg-gray-300 transition-colors"
           >
-            Browse Products
+            Browse Hookahs
           </Link>
         </div>
       </div>
