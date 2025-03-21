@@ -10,7 +10,7 @@ export { default as LoginPage } from './LoginPage';
 export { default as RegisterPage } from './RegisterPage';
 export { default as CheckoutPage } from './CheckoutPage';
 export { default as NotFoundPage } from './NotFoundPage';
-export { default as AuthCallbackPage } from './auth/callback';
+export { default as AuthCallbackPage } from './AuthCallbackPage';
 export { default as ProfilePage } from './ProfilePage';
 export { default as TestEmailPage } from './TestEmailPage';
 export { default as OrderSuccessPage } from './OrderSuccessPage';

@@ -25,7 +25,6 @@ import {
 import TailwindTestPage from './pages/TailwindTestPage'
 import TestEmailPage from './pages/TestEmailPage'
 import OrderSuccessPage from './pages/OrderSuccessPage'
-import OAuthDebugPage from './pages/OAuthDebugPage'
 
 // Initialize React Query client
 const queryClient = new QueryClient()
@@ -56,7 +55,6 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/test-email" element={<TestEmailPage />} />
-            <Route path="/oauth-debug" element={<OAuthDebugPage />} />
             <Route path="*" element={<NotFoundPage />} />
             {/* Additional routes will be uncommented as we create these pages */}
             {/* 

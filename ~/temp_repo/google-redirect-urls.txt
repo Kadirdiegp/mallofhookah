@@ -1,0 +1,17 @@
+# Google OAuth Redirect URLs
+
+Add ALL of these URLs to your Google Cloud Console OAuth Client configuration
+under "Authorized redirect URIs":
+
+# Supabase Callback URL (REQUIRED)
+https://vsljkgqyszhqrbbptldq.supabase.co/auth/v1/callback
+
+# Local Development URLs
+http://localhost:5173/auth/callback
+http://localhost:3000/auth/callback 
+
+# Production URL (update with your actual domain)
+# https://mallofhookah.com/auth/callback
+
+After adding these URLs, click SAVE at the bottom of the Google OAuth consent screen.
+Then wait a few minutes for the changes to propagate before testing again.

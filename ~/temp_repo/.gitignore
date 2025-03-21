@@ -62,6 +62,3 @@ wheels/
 client_secret_*.json
 *_client_secret_*.json
 google_client_secret_*.json
-
-# Local Netlify folder
-.netlify

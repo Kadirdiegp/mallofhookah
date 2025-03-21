@@ -1,24 +1,37 @@
 import { createClient } from '@supabase/supabase-js';
-import { Database } from '../types/supabase';
+import type { Database } from './database.types';
 
 if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
   throw new Error('Missing Supabase environment variables');
 }
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Bestimmen Sie die tatsächliche URL basierend auf der aktuellen Domäne, nicht der Umgebung
+// Vermeidet das Problem mit import.meta.env.DEV, das möglicherweise nicht korrekt auf Netlify erkannt wird
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const redirectUrl = isLocalhost
+  ? `${window.location.origin}/auth/callback`
+  : 'https://mallofhookah.netlify.app/auth/callback';
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    // Stellen Sie sicher, dass wir beim Aktualisieren der Seite die Sitzung wiederherstellen
-    storageKey: 'supabase-auth',
-  },
-  global: {
-    // Stellen Sie sicher, dass der Authorization-Header mit dem aktuellen Benutzer-Token gesetzt wird
-    headers: {
-      'X-Client-Info': 'mallofhookah-web'
+console.log('Current hostname:', window.location.hostname);
+console.log('Using redirect URL for Supabase OAuth:', redirectUrl);
+
+export const supabase = createClient<Database>(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      // In neueren Versionen von Supabase gibt es keinen redirectTo-Parameter in den Auth-Optionen
+      // Dieser wird nur bei den spezifischen Auth-Methoden verwendet
+      flowType: 'pkce'
+    },
+    global: {
+      // Stellen Sie sicher, dass der Authorization-Header mit dem aktuellen Benutzer-Token gesetzt wird
+      headers: {
+        'X-Client-Info': 'mallofhookah-web'
+      }
     }
   }
-});
+);

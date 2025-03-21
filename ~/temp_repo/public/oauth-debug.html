@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Debug Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.5;
+        }
+        .debug-section {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            margin-top: 0;
+            color: #666;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>OAuth Debug Page</h1>
+    <p>This page helps debug OAuth redirects and analyze URL parameters.</p>
+    
+    <div class="debug-section">
+        <h2>URL Analysis</h2>
+        <div id="url-info"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Query Parameters</h2>
+        <div id="query-params"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Hash Parameters</h2>
+        <div id="hash-params"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Code Parameter</h2>
+        <div id="code-param"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Manual Exchange</h2>
+        <p>If code parameter is found, you can try exchanging it for a session:</p>
+        <button id="exchange-btn" disabled>Exchange Code for Session</button>
+        <div id="exchange-result"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.skypack.dev/@supabase/supabase-js';
+        
+        // Initialize Supabase client
+        const supabaseUrl = 'https://vsljkgqyszhqrbbptldq.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbGprZ3F5c3pocXJiYnB0bGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1NTc3NDMsImV4cCI6MjA1ODEzMzc0M30.ezCrBqQ49l15kv9_qr9qX0LS_-ZtGe8A9TKHr3_MvKo';
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        // Show current URL info
+        const urlInfoDiv = document.getElementById('url-info');
+        urlInfoDiv.innerHTML = `
+            <p><strong>Full URL:</strong> <code>${window.location.href}</code></p>
+            <p><strong>Protocol:</strong> <code>${window.location.protocol}</code></p>
+            <p><strong>Hostname:</strong> <code>${window.location.hostname}</code></p>
+            <p><strong>Path:</strong> <code>${window.location.pathname}</code></p>
+            <p><strong>Search:</strong> <code>${window.location.search}</code></p>
+            <p><strong>Hash:</strong> <code>${window.location.hash}</code></p>
+        `;
+        
+        // Parse and display query parameters
+        const queryParams = new URLSearchParams(window.location.search);
+        const queryParamsDiv = document.getElementById('query-params');
+        if (queryParams.toString()) {
+            let paramsHtml = '<ul>';
+            for (const [key, value] of queryParams.entries()) {
+                paramsHtml += `<li><strong>${key}:</strong> <code>${value}</code></li>`;
+            }
+            paramsHtml += '</ul>';
+            queryParamsDiv.innerHTML = paramsHtml;
+        } else {
+            queryParamsDiv.innerHTML = '<p><em>No query parameters found</em></p>';
+        }
+        
+        // Parse and display hash parameters
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const hashParamsDiv = document.getElementById('hash-params');
+        if (hashParams.toString()) {
+            let paramsHtml = '<ul>';
+            for (const [key, value] of hashParams.entries()) {
+                paramsHtml += `<li><strong>${key}:</strong> <code>${value}</code></li>`;
+            }
+            paramsHtml += '</ul>';
+            hashParamsDiv.innerHTML = paramsHtml;
+        } else {
+            hashParamsDiv.innerHTML = '<p><em>No hash parameters found</em></p>';
+        }
+        
+        // Check for code parameter
+        const codeParamDiv = document.getElementById('code-param');
+        const exchangeBtn = document.getElementById('exchange-btn');
+        let code = queryParams.get('code') || hashParams.get('code');
+        
+        // Also try to extract code using regex
+        if (!code) {
+            const codeMatch = window.location.href.match(/code=([^&]*)/);
+            if (codeMatch) {
+                code = codeMatch[1];
+            }
+        }
+        
+        if (code) {
+            codeParamDiv.innerHTML = `
+                <p class="success"><strong>Code found!</strong></p>
+                <p>Authorization code: <code>${code}</code></p>
+            `;
+            exchangeBtn.disabled = false;
+        } else {
+            codeParamDiv.innerHTML = `
+                <p class="error"><strong>No code parameter found!</strong></p>
+                <p>This could be because:</p>
+                <ul>
+                    <li>The OAuth provider did not include a code in the redirect</li>
+                    <li>The redirect URL format doesn't match what the OAuth provider expects</li>
+                    <li>There was an error during the OAuth process</li>
+                </ul>
+            `;
+        }
+        
+        // Handle code exchange
+        exchangeBtn.addEventListener('click', async () => {
+            const exchangeResultDiv = document.getElementById('exchange-result');
+            exchangeResultDiv.innerHTML = '<p>Attempting to exchange code for session...</p>';
+            
+            try {
+                const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                
+                if (error) {
+                    exchangeResultDiv.innerHTML = `
+                        <p class="error"><strong>Exchange failed:</strong></p>
+                        <pre>${JSON.stringify(error, null, 2)}</pre>
+                    `;
+                } else {
+                    exchangeResultDiv.innerHTML = `
+                        <p class="success"><strong>Exchange successful!</strong></p>
+                        <p>You are now authenticated.</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (err) {
+                exchangeResultDiv.innerHTML = `
+                    <p class="error"><strong>Exception occurred:</strong></p>
+                    <pre>${err.message}</pre>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

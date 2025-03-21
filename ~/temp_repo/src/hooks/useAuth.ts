@@ -6,7 +6,6 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Get the current session
@@ -54,34 +53,29 @@ export function useAuth() {
   };
 
   const signInWithGoogle = async () => {
-    // Bestimmen Sie die tatsächliche URL basierend auf der aktuellen Domäne, nicht der Umgebung
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const redirectUrl = isLocalhost
-      ? `${window.location.origin}/auth/callback`
-      : 'https://mallofhookah.netlify.app/auth/callback';
+    // Use a hardcoded redirect URL for now to ensure it matches exactly what's configured in Google
+    const redirectUrl = import.meta.env.DEV 
+      ? 'http://localhost:5173/auth/callback' 
+      : `${window.location.origin}/auth/callback`;
       
-    console.log('Current hostname:', window.location.hostname);
-    console.log('Using redirect URL for Google OAuth:', redirectUrl);
+    console.log('Using redirect URL:', redirectUrl);
     
-    try {
-      // Der redirectTo-Parameter muss sowohl in der Initialisierung als auch hier angegeben werden
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          // Spezifische Scopes für Google, falls benötigt
-          scopes: 'email profile'
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+        queryParams: {
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+          // Note: We don't expose the client secret to the browser for security reasons
         }
-      });
-      
-      if (error) {
-        console.error('Supabase OAuth error:', error);
-        throw error;
       }
-    } catch (err) {
-      console.error('Error during Google sign-in:', err);
-      throw err;
+    });
+    
+    if (error) {
+      throw error;
     }
+    
+    return data;
   };
 
   const signUp = async (email: string, password: string) => {
@@ -109,7 +103,6 @@ export function useAuth() {
     user,
     session,
     loading,
-    error,
     signIn,
     signInWithGoogle,
     signUp,

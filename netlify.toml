@@ -1,0 +1,9 @@
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Die Weiterleitungsregel für SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
