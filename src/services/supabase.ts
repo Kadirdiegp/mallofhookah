@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './database.types';
 
 if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
   throw new Error('Missing Supabase environment variables');
@@ -15,17 +14,17 @@ const redirectUrl = isLocalhost
 console.log('Current hostname:', window.location.hostname);
 console.log('Using redirect URL for Supabase OAuth:', redirectUrl);
 
-export const supabase = createClient<Database>(
+// Verwende 'any' als Platzhalter für Database-Typ
+export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
   import.meta.env.VITE_SUPABASE_ANON_KEY,
   {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true,
+      detectSessionInUrl: true
       // In neueren Versionen von Supabase gibt es keinen redirectTo-Parameter in den Auth-Optionen
       // Dieser wird nur bei den spezifischen Auth-Methoden verwendet
-      flowType: 'pkce'
     },
     global: {
       // Stellen Sie sicher, dass der Authorization-Header mit dem aktuellen Benutzer-Token gesetzt wird

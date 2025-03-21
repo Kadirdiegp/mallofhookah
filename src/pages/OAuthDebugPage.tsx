@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
+
+interface DebugInfo {
+  supabaseUrl: string;
+  supabaseRedirectUrl: string;
+  windowLocationOrigin: string;
+  supabaseAuthConfig: Record<string, unknown> | string;
+}
 
 const OAuthDebugPage = () => {
   const [clientId, setClientId] = useState<string>('');
@@ -8,11 +16,14 @@ const OAuthDebugPage = () => {
   const [selectedUrl, setSelectedUrl] = useState<string>('');
   const [copying, setCopying] = useState(false);
   const [actualUsedRedirect, setActualUsedRedirect] = useState<string>('');
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null);
 
   useEffect(() => {
     // Get Supabase config
-    const supabaseConfig = (supabase as any)._config;
+    const supabaseClient = supabase as SupabaseClient;
+    // Explizite Typangabe für supabaseConfig mit potenzieller auth-Eigenschaft
+    const supabaseConfig: { auth?: { redirectTo?: string } } = 
+      (supabaseClient as unknown as { _config?: Record<string, unknown> })._config as { auth?: { redirectTo?: string } } || {};
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseRedirectUrl = supabaseConfig?.auth?.redirectTo || 'Nicht gefunden in Supabase-Konfiguration';
     
@@ -75,7 +86,9 @@ const OAuthDebugPage = () => {
       setActualUsedRedirect(redirectUrl);
       
       console.log('Testing Supabase OAuth with redirect URL:', redirectUrl);
-      console.log('Supabase configuration before OAuth:', (supabase as any)._config);
+      const supabaseClient = supabase as SupabaseClient;
+      console.log('Supabase configuration before OAuth:', 
+        (supabaseClient as { _config?: Record<string, unknown> })._config);
       
       const { error, data } = await supabase.auth.signInWithOAuth({
         provider: 'google',

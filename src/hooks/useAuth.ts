@@ -6,7 +6,6 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Get the current session
@@ -109,7 +108,6 @@ export function useAuth() {
     user,
     session,
     loading,
-    error,
     signIn,
     signInWithGoogle,
     signUp,
