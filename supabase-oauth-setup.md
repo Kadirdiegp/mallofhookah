@@ -1,49 +1,67 @@
-# Setting up Google OAuth with Supabase
+# Supabase OAuth Setup Guide
 
-To configure Google OAuth in your Supabase project, follow these steps:
+This guide provides instructions for setting up OAuth with Google in your Supabase project.
 
-## 1. Supabase Configuration
+## Prerequisites
 
-1. Log in to your Supabase dashboard at https://app.supabase.com
-2. Select your "Mall of Hookah" project
-3. Navigate to "Authentication" in the left sidebar
-4. Click on "Providers"
-5. Find "Google" and click on the toggle to enable it
-6. Enter the following details:
-   - **Client ID**: `885966166489-ipgab9n5605el3ai1kj0m4lsmhp5b6r7.apps.googleusercontent.com`
-   - **Client Secret**: `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`
-   - **Authorized Redirect URLs**: These are preconfigured by Supabase, no action needed
+- A Supabase project
+- A Google Cloud Platform account
+- Basic knowledge of OAuth 2.0
 
-## 2. Google Cloud Console Configuration
+## Setting Up Google OAuth
+
+### Step 1: Create OAuth Credentials in Google Cloud Console
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Select your project ("mallofhookah")
+2. Create a new project or select an existing one
 3. Navigate to "APIs & Services" > "Credentials"
-4. Select your OAuth 2.0 Client ID
-5. Under "Authorized redirect URIs", add:
-   - `https://vsljkgqyszhqrbbptldq.supabase.co/auth/v1/callback`
-   - `http://localhost:5173/auth/callback` (for local development)
-   - `https://yourlivesite.com/auth/callback` (for production when deployed)
+4. Click "Create Credentials" > "OAuth client ID"
+5. Select "Web application" as the application type
+6. Enter a name for your OAuth client
+7. Add authorized JavaScript origins:
+   - `http://localhost:5173` (for local development)
+   - `http://localhost:3000` (for Supabase CLI)
+   - Your production URL
+8. Add authorized redirect URIs:
+   - `http://localhost:5173/auth/callback` (local development)
+   - `http://localhost:3000/auth/v1/callback` (Supabase CLI)
+   - `https://[YOUR-PROJECT-REF].supabase.co/auth/v1/callback` (Supabase)
+   - Your production callback URL
+9. Click "Create"
 
-## 3. Testing the OAuth Flow
+### Step 2: Configure Supabase Auth
 
-1. Make sure your application is running
-2. Navigate to the login page
-3. Click on the "Sign in with Google" button
-4. Complete the Google authentication
-5. You should be redirected back to your application and logged in
+1. Go to [Supabase Dashboard](https://app.supabase.com)
+2. Select your project
+3. Navigate to "Authentication" > "Providers"
+4. Find "Google" and click "Enable"
+5. Enter your Client ID and Client Secret
+6. Save the configuration
 
-## Troubleshooting
+### Step 3: Update Environment Variables
 
-If you encounter issues:
+Add your Google OAuth credentials to your `.env` file:
 
-1. Check the browser console for errors
-2. Verify that the redirect URLs are correctly configured in both Supabase and Google Cloud Console
-3. Ensure environment variables are loaded correctly
-4. Check Supabase logs for authentication errors in the "Authentication" > "Logs" section
+```bash
+VITE_GOOGLE_CLIENT_ID=your_client_id
+VITE_GOOGLE_CLIENT_SECRET=your_client_secret
+```
 
-## Security Notes
+## Testing the Integration
 
-- Never expose your Client Secret in client-side code
-- The Client ID is safe to use in the browser
-- For production, consider setting up separate OAuth credentials for development and production environments
+You can test your OAuth integration with:
+
+```bash
+node scripts/test-google-oauth.js
+```
+
+## Common Issues
+
+- **Redirect URI Mismatch**: Ensure the redirect URIs in Google Cloud Console match exactly with what Supabase expects
+- **Credentials Not Working**: Verify the client ID and secret are correctly copied
+- **Callback Errors**: Check browser console and Supabase logs for detailed error messages
+
+## Additional Resources
+
+- [Supabase Auth Documentation](https://supabase.com/docs/guides/auth)
+- [Google OAuth Documentation](https://developers.google.com/identity/protocols/oauth2)
