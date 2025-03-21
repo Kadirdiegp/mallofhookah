@@ -41,104 +41,144 @@ const ProductListPage = () => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Premium Hookah Set',
+          slug: 'premium-hookah-set',
           description: 'Complete hookah set with premium accessories.',
           price: 129.99,
+          discount_price: null,
           stock: 15,
           category_id: 'hookah',
           images: ['/images/products/hookah1.jpg'],
           featured: true,
-          sku: 'HKH001'
+          sku: 'HKH001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         {
           id: '2',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Vape Starter Kit',
+          slug: 'vape-starter-kit',
           description: 'Everything you need to start vaping.',
           price: 49.99,
+          discount_price: null,
           stock: 25,
           category_id: 'vapes',
           images: ['/images/products/vape1.jpg'],
           featured: true,
-          sku: 'VPE001'
+          sku: 'VPE001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         {
           id: '3',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Fruit Mix Tobacco',
+          slug: 'fruit-mix-tobacco',
           description: 'Premium fruit-flavored tobacco for hookah.',
           price: 24.99,
+          discount_price: null,
           stock: 50,
           category_id: 'tobacco',
           images: ['/images/products/tobacco1.jpg'],
           featured: true,
-          sku: 'TBC001'
+          sku: 'TBC001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         {
           id: '4',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Hookah Cleaning Kit',
+          slug: 'hookah-cleaning-kit',
           description: 'Complete kit for cleaning and maintaining your hookah.',
           price: 19.99,
+          discount_price: null,
           stock: 30,
           category_id: 'accessories',
           images: ['/images/products/accessory1.jpg'],
           featured: true,
-          sku: 'ACC001'
+          sku: 'ACC001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         {
           id: '5',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Glass Hookah',
+          slug: 'glass-hookah',
           description: 'Elegant glass hookah with LED lighting.',
           price: 89.99,
+          discount_price: null,
           stock: 10,
           category_id: 'hookah',
           images: ['/images/products/hookah2.jpg'],
           featured: false,
-          sku: 'HKH002'
+          sku: 'HKH002',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         {
           id: '6',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Disposable Vape Pen',
+          slug: 'disposable-vape-pen',
           description: 'Convenient disposable vape pen with flavor options.',
           price: 9.99,
+          discount_price: null,
           stock: 100,
           category_id: 'vapes',
           images: ['/images/products/vape2.jpg'],
           featured: false,
-          sku: 'VPE002'
+          sku: 'VPE002',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         {
           id: '7',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Mint Tobacco',
+          slug: 'mint-tobacco',
           description: 'Refreshing mint-flavored hookah tobacco.',
           price: 22.99,
+          discount_price: null,
           stock: 45,
           category_id: 'tobacco',
           images: ['/images/products/tobacco2.jpg'],
           featured: false,
-          sku: 'TBC002'
+          sku: 'TBC002',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         {
           id: '8',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Hookah Hose Set',
+          slug: 'hookah-hose-set',
           description: 'Set of premium silicone hookah hoses.',
           price: 29.99,
+          discount_price: null,
           stock: 20,
           category_id: 'accessories',
           images: ['/images/products/accessory2.jpg'],
           featured: false,
-          sku: 'ACC002'
+          sku: 'ACC002',
+          weight: null,
+          dimensions: null,
+          metadata: null
         }
       ];
 
@@ -168,7 +208,7 @@ const ProductListPage = () => {
         const query = filterOptions.searchQuery.toLowerCase();
         filteredProducts = filteredProducts.filter(product => 
           product.name.toLowerCase().includes(query) || 
-          product.description.toLowerCase().includes(query)
+          (product.description && product.description.toLowerCase().includes(query))
         );
       }
       
@@ -204,7 +244,7 @@ const ProductListPage = () => {
       name: product.name,
       price: product.price,
       quantity: 1,
-      image: product.images[0] || ''
+      image: product.images && product.images.length > 0 ? product.images[0] : ''
     });
   };
 
@@ -417,10 +457,17 @@ const ProductListPage = () => {
                   <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                     <Link to={`/product/${product.id}`} className="block">
                       <div className="h-48 bg-gray-200">
-                        {/* Image will be replaced with actual image */}
-                        <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                          <span className="text-gray-500">{product.name} Image</span>
-                        </div>
+                        {product.images && product.images.length > 0 ? (
+                          <img 
+                            src={product.images[0]} 
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                            <span className="text-gray-500">{product.name} Image</span>
+                          </div>
+                        )}
                       </div>
                     </Link>
                     <div className="p-4">

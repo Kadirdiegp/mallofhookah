@@ -31,56 +31,76 @@ const ProductDetailPage = () => {
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Premium Hookah Set',
+          slug: 'premium-hookah-set',
           description: 'Complete hookah set with premium accessories. This elegant hookah set includes a high-quality glass base, premium stainless steel stem, silicone hose with washable mouthpiece, clay bowl, and tongs. Perfect for beginners and experienced hookah enthusiasts alike. The ergonomic design ensures a smooth smoking experience, while the sturdy build guarantees longevity. This set comes in an elegant gift box, making it perfect for a present.',
           price: 129.99,
+          discount_price: null,
           stock: 15,
           category_id: 'hookah',
           images: ['/images/products/hookah1-1.jpg', '/images/products/hookah1-2.jpg', '/images/products/hookah1-3.jpg'],
           featured: true,
-          sku: 'HKH001'
+          sku: 'HKH001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         '2': {
           id: '2',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Vape Starter Kit',
+          slug: 'vape-starter-kit',
           description: 'Everything you need to start vaping. This comprehensive starter kit includes a high-quality vape device, two coils, a USB charging cable, and a user manual. The device features adjustable wattage and airflow, allowing you to customize your vaping experience. With its sleek design and compact size, this kit is perfect for beginners who want a reliable and easy-to-use vaping solution.',
           price: 49.99,
+          discount_price: null,
           stock: 25,
           category_id: 'vapes',
           images: ['/images/products/vape1-1.jpg', '/images/products/vape1-2.jpg'],
           featured: true,
-          sku: 'VPE001'
+          sku: 'VPE001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         '3': {
           id: '3',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Fruit Mix Tobacco',
+          slug: 'fruit-mix-tobacco',
           description: 'Premium fruit-flavored tobacco for hookah. This premium tobacco blend features a delicious mix of tropical fruits, creating a refreshing and aromatic smoking experience. Made from high-quality tobacco leaves and natural fruit extracts, this blend provides a smooth smoke with rich flavor. Each 250g package is sealed for freshness and comes with storage instructions to maintain optimal flavor.',
           price: 24.99,
+          discount_price: null,
           stock: 50,
           category_id: 'tobacco',
           images: ['/images/products/tobacco1-1.jpg'],
           featured: true,
-          sku: 'TBC001'
+          sku: 'TBC001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         },
         '4': {
           id: '4',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           name: 'Hookah Cleaning Kit',
+          slug: 'hookah-cleaning-kit',
           description: 'Complete kit for cleaning and maintaining your hookah. This comprehensive cleaning kit includes specialized brushes for the stem and base, a dedicated bowl cleaner, pipe cleaners for the hose, and a premium cleaning solution that removes residue without damaging your hookah. Regular cleaning with this kit will extend the life of your hookah and ensure a consistently smooth smoking experience with pure flavor.',
           price: 19.99,
+          discount_price: null,
           stock: 30,
           category_id: 'accessories',
           images: ['/images/products/accessory1-1.jpg', '/images/products/accessory1-2.jpg'],
           featured: true,
-          sku: 'ACC001'
+          sku: 'ACC001',
+          weight: null,
+          dimensions: null,
+          metadata: null
         }
       };
       
-      const foundProduct = mockProducts[id];
+      const foundProduct = id ? mockProducts[id] : null;
       
       if (foundProduct) {
         setProduct(foundProduct);
@@ -117,7 +137,7 @@ const ProductDetailPage = () => {
       name: product.name,
       price: product.price,
       quantity: quantity,
-      image: product.images[0] || ''
+      image: product.images && product.images.length > 0 ? product.images[0] : ''
     });
   };
 
@@ -178,7 +198,7 @@ const ProductDetailPage = () => {
           {/* Product Images */}
           <div>
             <div className="bg-white rounded-lg overflow-hidden shadow-md mb-4 h-80">
-              {product.images.length > 0 ? (
+              {product.images && product.images.length > 0 ? (
                 <img
                   src={product.images[activeImage]}
                   alt={product.name}
@@ -190,7 +210,7 @@ const ProductDetailPage = () => {
             </div>
             
             {/* Thumbnail Gallery */}
-            {product.images.length > 1 && (
+            {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-4 gap-4">
                 {product.images.map((image, index) => (
                   <button
@@ -368,10 +388,17 @@ const ProductDetailPage = () => {
                 <div key={relatedProduct.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                   <Link to={`/product/${relatedProduct.id}`} className="block">
                     <div className="h-48 bg-gray-200">
-                      {/* Image will be replaced with actual image */}
-                      <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                        <span className="text-gray-500">{relatedProduct.name} Image</span>
-                      </div>
+                      {relatedProduct.images && relatedProduct.images.length > 0 ? (
+                        <img 
+                          src={relatedProduct.images[0]} 
+                          alt={relatedProduct.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                          <span className="text-gray-500">{relatedProduct.name} Image</span>
+                        </div>
+                      )}
                     </div>
                   </Link>
                   <div className="p-4">
