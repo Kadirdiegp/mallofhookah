@@ -152,7 +152,7 @@ Fügen Sie diese Weiterleitungs-URLs in die Google Cloud Console ein:
     supabaseButton.onclick = async () => {
       try {
         console.log('Testing Supabase OAuth...');
-        const { data, error } = await supabase.auth.signInWithOAuth({
+        const { error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
             redirectTo: redirectUrl
@@ -196,7 +196,7 @@ Fügen Sie diese Weiterleitungs-URLs in die Google Cloud Console ein:
     buttonContainer.appendChild(googleButton);
     
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl
@@ -228,7 +228,7 @@ Fügen Sie diese Weiterleitungs-URLs in die Google Cloud Console ein:
         }, 30000);
       }
       
-      return data;
+      return;
     } catch (err) {
       console.error('Unexpected error during Google sign-in:', err);
       const errMessage = err instanceof Error ? err.message : 'Unknown error';
