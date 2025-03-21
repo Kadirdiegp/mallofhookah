@@ -56,62 +56,150 @@ export function useAuth() {
   const signInWithGoogle = async () => {
     // Hardcode the exact redirect URL that is configured in Google Cloud Console
     const redirectUrl = 'https://mallofhookah.netlify.app/auth/callback';
+    const supabaseRedirectUrl = 'https://vsljkgqyszphqrbbptldq.supabase.co/auth/v1/callback';
       
     console.log('Using redirect URL for Google OAuth:', redirectUrl);
     
-    // Create a logging element to show the URL in the UI for debugging
+    // Create an advanced debug div with more information
     const debugDiv = document.createElement('div');
     debugDiv.style.position = 'fixed';
     debugDiv.style.top = '10px';
-    debugDiv.style.right = '10px';
-    debugDiv.style.backgroundColor = 'rgba(0,0,0,0.8)';
+    debugDiv.style.left = '10px';
+    debugDiv.style.width = 'calc(100% - 20px)';
+    debugDiv.style.maxHeight = '80vh';
+    debugDiv.style.overflowY = 'auto';
+    debugDiv.style.backgroundColor = 'rgba(0,0,0,0.9)';
     debugDiv.style.color = 'white';
-    debugDiv.style.padding = '10px';
+    debugDiv.style.padding = '15px';
     debugDiv.style.borderRadius = '5px';
     debugDiv.style.zIndex = '9999';
+    debugDiv.style.fontSize = '14px';
+    debugDiv.style.fontFamily = 'monospace';
+    
     debugDiv.innerHTML = `
-      <p>Environment: ${import.meta.env.DEV ? 'Development' : 'Production'}</p>
-      <p>Hardcoded Redirect URL: ${redirectUrl}</p>
-      <p>Dynamic Origin: ${window.location.origin}</p>
-      <p>Client ID: ${import.meta.env.VITE_GOOGLE_CLIENT_ID ? import.meta.env.VITE_GOOGLE_CLIENT_ID.substring(0, 8) + '...' : 'Not set'}</p>
+      <h2 style="color: #4CAF50; margin-top: 0;">OAuth Debug Informationen</h2>
+      <p><strong>Environment:</strong> ${import.meta.env.DEV ? 'Development' : 'Production'}</p>
+      <p><strong>App-Weiterleitungs-URL:</strong> ${redirectUrl}</p>
+      <p><strong>Supabase-Weiterleitungs-URL:</strong> ${supabaseRedirectUrl}</p>
+      <p><strong>Dynamische Origin:</strong> ${window.location.origin}</p>
+      <p><strong>Client ID:</strong> ${import.meta.env.VITE_GOOGLE_CLIENT_ID ?? 'Nicht gesetzt'}</p>
+      <h3 style="color: #4CAF50;">Tipps zur Fehlerbehebung:</h3>
+      <ol>
+        <li>Stellen Sie sicher, dass die folgenden URLs in der Google Cloud Console unter "Authorized redirect URIs" konfiguriert sind:
+          <ul style="margin-left: 20px;">
+            <li>${redirectUrl}</li>
+            <li>${supabaseRedirectUrl}</li>
+          </ul>
+        </li>
+        <li>Überprüfen Sie, ob die URLs exakt übereinstimmen (kein zusätzlicher Schrägstrich am Ende, keine Leerzeichen).</li>
+        <li>Eventuell gibt es eine Latenz in der Google Cloud Console - Änderungen können bis zu 5 Minuten dauern, bis sie wirksam werden.</li>
+        <li>Löschen Sie Browser-Cookies für Google und versuchen Sie es erneut.</li>
+      </ol>
+      <div style="margin-top: 15px; display: flex; gap: 10px;">
+        <button id="closeDebug" style="background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Schließen</button>
+        <button id="copyDebug" style="background-color: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">In Zwischenablage kopieren</button>
+      </div>
     `;
     document.body.appendChild(debugDiv);
     
-    // Remove the debug element after 30 seconds
-    setTimeout(() => {
+    // Add event listeners for the buttons
+    document.getElementById('closeDebug')?.addEventListener('click', () => {
       if (document.body.contains(debugDiv)) {
         document.body.removeChild(debugDiv);
       }
-    }, 30000);
+    });
     
-    // Add direct redirect button for testing
-    const testButton = document.createElement('button');
-    testButton.style.position = 'fixed';
-    testButton.style.top = '150px';
-    testButton.style.right = '10px';
-    testButton.style.backgroundColor = '#4CAF50';
-    testButton.style.color = 'white';
-    testButton.style.padding = '15px';
-    testButton.style.borderRadius = '5px';
-    testButton.style.zIndex = '9999';
-    testButton.style.border = 'none';
-    testButton.style.cursor = 'pointer';
-    testButton.innerText = 'Test Direct Google Redirect';
-    testButton.onclick = () => {
-      // Create a manual redirect URL to Google OAuth
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${encodeURIComponent(import.meta.env.VITE_GOOGLE_CLIENT_ID)}&redirect_uri=${encodeURIComponent(redirectUrl)}&response_type=code&scope=email%20profile&access_type=offline&prompt=consent`;
-      
-      console.log('Redirecting directly to:', googleAuthUrl);
-      window.location.href = googleAuthUrl;
+    document.getElementById('copyDebug')?.addEventListener('click', () => {
+      const debugInfo = `
+OAuth Debug Informationen:
+- Environment: ${import.meta.env.DEV ? 'Development' : 'Production'}
+- App-Weiterleitungs-URL: ${redirectUrl}
+- Supabase-Weiterleitungs-URL: ${supabaseRedirectUrl}
+- Dynamische Origin: ${window.location.origin}
+- Client ID: ${import.meta.env.VITE_GOOGLE_CLIENT_ID ?? 'Nicht gesetzt'}
+
+Fügen Sie diese Weiterleitungs-URLs in die Google Cloud Console ein:
+1. ${redirectUrl}
+2. ${supabaseRedirectUrl}
+      `;
+      navigator.clipboard.writeText(debugInfo).then(() => {
+        alert('Debug-Informationen wurden in die Zwischenablage kopiert!');
+      });
+    });
+    
+    // Add buttons for direct testing
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.position = 'fixed';
+    buttonContainer.style.bottom = '20px';
+    buttonContainer.style.right = '20px';
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.flexDirection = 'column';
+    buttonContainer.style.gap = '10px';
+    buttonContainer.style.zIndex = '9999';
+    document.body.appendChild(buttonContainer);
+    
+    // Test Supabase OAuth
+    const supabaseButton = document.createElement('button');
+    supabaseButton.style.backgroundColor = '#3ECF8E';
+    supabaseButton.style.color = 'white';
+    supabaseButton.style.padding = '12px 20px';
+    supabaseButton.style.border = 'none';
+    supabaseButton.style.borderRadius = '5px';
+    supabaseButton.style.cursor = 'pointer';
+    supabaseButton.style.fontWeight = 'bold';
+    supabaseButton.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    supabaseButton.innerText = 'Supabase OAuth testen';
+    supabaseButton.onclick = async () => {
+      try {
+        console.log('Testing Supabase OAuth...');
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl
+          }
+        });
+        
+        if (error) {
+          console.error('Supabase OAuth error:', error);
+          alert(`Supabase OAuth Error: ${error.message}`);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+        alert(`Unexpected Error: ${err instanceof Error ? err.message : String(err)}`);
+      }
     };
-    document.body.appendChild(testButton);
+    buttonContainer.appendChild(supabaseButton);
+    
+    // Direct Google OAuth
+    const googleButton = document.createElement('button');
+    googleButton.style.backgroundColor = '#4285F4';
+    googleButton.style.color = 'white';
+    googleButton.style.padding = '12px 20px';
+    googleButton.style.border = 'none';
+    googleButton.style.borderRadius = '5px';
+    googleButton.style.cursor = 'pointer';
+    googleButton.style.fontWeight = 'bold';
+    googleButton.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+    googleButton.innerText = 'Direkter Google Redirect';
+    googleButton.onclick = () => {
+      try {
+        // Create a manual redirect URL to Google OAuth
+        const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${encodeURIComponent(import.meta.env.VITE_GOOGLE_CLIENT_ID)}&redirect_uri=${encodeURIComponent(supabaseRedirectUrl)}&response_type=code&scope=email%20profile&access_type=offline&prompt=consent`;
+        
+        console.log('Redirecting directly to:', googleAuthUrl);
+        window.location.href = googleAuthUrl;
+      } catch (err) {
+        console.error('Error creating direct Google redirect:', err);
+        alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
+      }
+    };
+    buttonContainer.appendChild(googleButton);
     
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: redirectUrl,
-          // Remove all queryParams to ensure nothing interferes with the redirect
+          redirectTo: redirectUrl
         }
       });
       
