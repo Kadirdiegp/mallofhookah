@@ -6,6 +6,7 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // Get the current session
@@ -70,15 +71,20 @@ export function useAuth() {
     debugDiv.style.padding = '10px';
     debugDiv.style.borderRadius = '5px';
     debugDiv.style.zIndex = '9999';
-    debugDiv.innerHTML = `<p>Redirect URL: ${redirectUrl}</p>`;
+    debugDiv.innerHTML = `
+      <p>Environment: ${import.meta.env.DEV ? 'Development' : 'Production'}</p>
+      <p>Redirect URL: ${redirectUrl}</p>
+      <p>Client ID: ${import.meta.env.VITE_GOOGLE_CLIENT_ID ? import.meta.env.VITE_GOOGLE_CLIENT_ID.substring(0, 8) + '...' : 'Not set'}</p>
+      <p>Window Location: ${window.location.origin}</p>
+    `;
     document.body.appendChild(debugDiv);
     
-    // Remove the debug element after 10 seconds
+    // Remove the debug element after 20 seconds
     setTimeout(() => {
       if (document.body.contains(debugDiv)) {
         document.body.removeChild(debugDiv);
       }
-    }, 10000);
+    }, 20000);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -92,7 +98,28 @@ export function useAuth() {
     });
     
     if (error) {
-      throw error;
+      setError(error.message);
+      console.error('Google OAuth error:', error);
+      
+      // Show error in the UI
+      const errorDiv = document.createElement('div');
+      errorDiv.style.position = 'fixed';
+      errorDiv.style.top = '100px';
+      errorDiv.style.right = '10px';
+      errorDiv.style.backgroundColor = 'rgba(255,0,0,0.8)';
+      errorDiv.style.color = 'white';
+      errorDiv.style.padding = '10px';
+      errorDiv.style.borderRadius = '5px';
+      errorDiv.style.zIndex = '9999';
+      errorDiv.innerHTML = `<p>OAuth Error: ${error.message}</p>`;
+      document.body.appendChild(errorDiv);
+      
+      // Remove the error element after 30 seconds
+      setTimeout(() => {
+        if (document.body.contains(errorDiv)) {
+          document.body.removeChild(errorDiv);
+        }
+      }, 30000);
     }
     
     return data;
@@ -123,6 +150,7 @@ export function useAuth() {
     user,
     session,
     loading,
+    error,
     signIn,
     signInWithGoogle,
     signUp,
