@@ -55,9 +55,7 @@ export function useAuth() {
 
   const signInWithGoogle = async () => {
     // Hardcode the exact redirect URL that is configured in Google Cloud Console
-    const redirectUrl = import.meta.env.DEV 
-      ? 'http://localhost:5173/auth/callback' 
-      : 'https://mallofhookah.netlify.app/auth/callback';
+    const redirectUrl = 'https://mallofhookah.netlify.app/auth/callback';
       
     console.log('Using redirect URL for Google OAuth:', redirectUrl);
     
@@ -79,22 +77,41 @@ export function useAuth() {
     `;
     document.body.appendChild(debugDiv);
     
-    // Remove the debug element after 20 seconds
+    // Remove the debug element after 30 seconds
     setTimeout(() => {
       if (document.body.contains(debugDiv)) {
         document.body.removeChild(debugDiv);
       }
-    }, 20000);
+    }, 30000);
+    
+    // Add direct redirect button for testing
+    const testButton = document.createElement('button');
+    testButton.style.position = 'fixed';
+    testButton.style.top = '150px';
+    testButton.style.right = '10px';
+    testButton.style.backgroundColor = '#4CAF50';
+    testButton.style.color = 'white';
+    testButton.style.padding = '15px';
+    testButton.style.borderRadius = '5px';
+    testButton.style.zIndex = '9999';
+    testButton.style.border = 'none';
+    testButton.style.cursor = 'pointer';
+    testButton.innerText = 'Test Direct Google Redirect';
+    testButton.onclick = () => {
+      // Create a manual redirect URL to Google OAuth
+      const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${encodeURIComponent(import.meta.env.VITE_GOOGLE_CLIENT_ID)}&redirect_uri=${encodeURIComponent(redirectUrl)}&response_type=code&scope=email%20profile&access_type=offline&prompt=consent`;
+      
+      console.log('Redirecting directly to:', googleAuthUrl);
+      window.location.href = googleAuthUrl;
+    };
+    document.body.appendChild(testButton);
     
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          }
+          // Remove all queryParams to ensure nothing interferes with the redirect
         }
       });
       
