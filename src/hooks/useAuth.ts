@@ -54,10 +54,10 @@ export function useAuth() {
   };
 
   const signInWithGoogle = async () => {
-    // Use a hardcoded redirect URL for now to ensure it matches exactly what's configured in Google
+    // Hardcode the exact redirect URL that is configured in Google Cloud Console
     const redirectUrl = import.meta.env.DEV 
       ? 'http://localhost:5173/auth/callback' 
-      : `${window.location.origin}/auth/callback`;
+      : 'https://mallofhookah.netlify.app/auth/callback';
       
     console.log('Using redirect URL for Google OAuth:', redirectUrl);
     
@@ -73,9 +73,9 @@ export function useAuth() {
     debugDiv.style.zIndex = '9999';
     debugDiv.innerHTML = `
       <p>Environment: ${import.meta.env.DEV ? 'Development' : 'Production'}</p>
-      <p>Redirect URL: ${redirectUrl}</p>
+      <p>Hardcoded Redirect URL: ${redirectUrl}</p>
+      <p>Dynamic Origin: ${window.location.origin}</p>
       <p>Client ID: ${import.meta.env.VITE_GOOGLE_CLIENT_ID ? import.meta.env.VITE_GOOGLE_CLIENT_ID.substring(0, 8) + '...' : 'Not set'}</p>
-      <p>Window Location: ${window.location.origin}</p>
     `;
     document.body.appendChild(debugDiv);
     
@@ -86,20 +86,48 @@ export function useAuth() {
       }
     }, 20000);
     
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl,
-        queryParams: {
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-          // Note: We don't expose the client secret to the browser for security reasons
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
+      });
+      
+      if (error) {
+        setError(error.message);
+        console.error('Google OAuth error:', error);
+        
+        // Show error in the UI
+        const errorDiv = document.createElement('div');
+        errorDiv.style.position = 'fixed';
+        errorDiv.style.top = '100px';
+        errorDiv.style.right = '10px';
+        errorDiv.style.backgroundColor = 'rgba(255,0,0,0.8)';
+        errorDiv.style.color = 'white';
+        errorDiv.style.padding = '10px';
+        errorDiv.style.borderRadius = '5px';
+        errorDiv.style.zIndex = '9999';
+        errorDiv.innerHTML = `<p>OAuth Error: ${error.message}</p>`;
+        document.body.appendChild(errorDiv);
+        
+        // Remove the error element after 30 seconds
+        setTimeout(() => {
+          if (document.body.contains(errorDiv)) {
+            document.body.removeChild(errorDiv);
+          }
+        }, 30000);
       }
-    });
-    
-    if (error) {
-      setError(error.message);
-      console.error('Google OAuth error:', error);
+      
+      return data;
+    } catch (err) {
+      console.error('Unexpected error during Google sign-in:', err);
+      const errMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError(errMessage);
       
       // Show error in the UI
       const errorDiv = document.createElement('div');
@@ -111,18 +139,11 @@ export function useAuth() {
       errorDiv.style.padding = '10px';
       errorDiv.style.borderRadius = '5px';
       errorDiv.style.zIndex = '9999';
-      errorDiv.innerHTML = `<p>OAuth Error: ${error.message}</p>`;
+      errorDiv.innerHTML = `<p>Unexpected Error: ${errMessage}</p>`;
       document.body.appendChild(errorDiv);
       
-      // Remove the error element after 30 seconds
-      setTimeout(() => {
-        if (document.body.contains(errorDiv)) {
-          document.body.removeChild(errorDiv);
-        }
-      }, 30000);
+      return null;
     }
-    
-    return data;
   };
 
   const signUp = async (email: string, password: string) => {
