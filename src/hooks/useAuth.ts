@@ -58,7 +58,27 @@ export function useAuth() {
       ? 'http://localhost:5173/auth/callback' 
       : `${window.location.origin}/auth/callback`;
       
-    console.log('Using redirect URL:', redirectUrl);
+    console.log('Using redirect URL for Google OAuth:', redirectUrl);
+    
+    // Create a logging element to show the URL in the UI for debugging
+    const debugDiv = document.createElement('div');
+    debugDiv.style.position = 'fixed';
+    debugDiv.style.top = '10px';
+    debugDiv.style.right = '10px';
+    debugDiv.style.backgroundColor = 'rgba(0,0,0,0.8)';
+    debugDiv.style.color = 'white';
+    debugDiv.style.padding = '10px';
+    debugDiv.style.borderRadius = '5px';
+    debugDiv.style.zIndex = '9999';
+    debugDiv.innerHTML = `<p>Redirect URL: ${redirectUrl}</p>`;
+    document.body.appendChild(debugDiv);
+    
+    // Remove the debug element after 10 seconds
+    setTimeout(() => {
+      if (document.body.contains(debugDiv)) {
+        document.body.removeChild(debugDiv);
+      }
+    }, 10000);
     
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
