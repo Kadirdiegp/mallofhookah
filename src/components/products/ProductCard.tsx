@@ -40,7 +40,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       
       {/* Product Tags */}
       {hasDiscount && (
-        <div className="absolute top-2 right-2 bg-primary text-light px-2 py-1 text-xs font-bold rounded">
+        <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 text-xs font-bold rounded">
           Sale
         </div>
       )}
@@ -48,7 +48,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       {/* Product Details */}
       <div className="p-4">
         <Link to={`/product/${id}`} className="block">
-          <h3 className="text-light font-medium text-lg mb-1 transition-colors duration-300 group-hover:text-primary">
+          <h3 className="text-light font-medium text-lg mb-1 transition-colors duration-300 group-hover:text-white">
             {name}
           </h3>
         </Link>
@@ -57,17 +57,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <div className="flex items-center">
             {hasDiscount ? (
               <>
-                <span className="text-primary font-bold">${displayPrice.toFixed(2)}</span>
+                <span className="text-white font-bold">${displayPrice.toFixed(2)}</span>
                 <span className="text-gray-400 line-through ml-2 text-sm">${price.toFixed(2)}</span>
               </>
             ) : (
-              <span className="text-primary font-bold">${price.toFixed(2)}</span>
+              <span className="text-white font-bold">${price.toFixed(2)}</span>
             )}
           </div>
           
           <button 
             onClick={handleAddToCart}
-            className="bg-primary hover:bg-accent text-light px-3 py-1 rounded-full text-sm transition-colors duration-300"
+            className="bg-primary hover:bg-accent text-white px-3 py-1 rounded-full text-sm transition-colors duration-300"
           >
             Add to Cart
           </button>

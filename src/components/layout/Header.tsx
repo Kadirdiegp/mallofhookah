@@ -148,7 +148,7 @@ const Header = () => {
 
           {/* Cart and Account */}
           <div className="hidden lg:flex items-center space-x-4 ml-4">
-            <Link to="/cart" className="relative p-2 hover:text-primary transition-colors">
+            <Link to="/cart" className="relative p-2 text-white hover:text-primary transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6"

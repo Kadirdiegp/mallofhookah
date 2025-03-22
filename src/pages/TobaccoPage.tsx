@@ -7,7 +7,7 @@ const TobaccoPage: React.FC = () => {
       categorySlug="tobacco"
       categoryName="Tobacco"
       categoryDescription="Discover our premium tobacco blends for your hookah. From refreshing mint to exotic fruit combinations, we offer a wide range of flavors to enhance your smoking experience."
-      bannerImage="/images/category-tobacco.jpg"
+      bannerImage="/images/Images:Categories/tobacco.jpg"
     />
   );
 };

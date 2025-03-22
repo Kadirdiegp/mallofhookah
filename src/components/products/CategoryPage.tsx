@@ -74,20 +74,20 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
       {/* Category Description */}
       {categoryDescription && (
         <div className="mb-8 text-center">
-          <p className="text-gray-700">{categoryDescription}</p>
+          <p className="text-white">{categoryDescription}</p>
         </div>
       )}
 
       {/* Sort Controls */}
       <div className="flex justify-between items-center mb-6">
-        <p className="text-gray-700">
+        <p className="text-white">
           {sortedProducts.length} {sortedProducts.length === 1 ? 'product' : 'products'} found
         </p>
         <div className="flex items-center">
-          <label htmlFor="sort" className="mr-2 text-gray-700">Sort by:</label>
+          <label htmlFor="sort" className="mr-2 text-white">Sort by:</label>
           <select
             id="sort"
-            className="border rounded-md px-3 py-1"
+            className="border rounded-md px-3 py-1 bg-dark-card text-white border-gray-700"
             value={sortOption}
             onChange={(e) => setSortOption(e.target.value)}
           >
@@ -108,7 +108,7 @@ const CategoryPage: React.FC<CategoryPageProps> = ({
         </div>
       ) : (
         <div className="text-center py-12">
-          <p className="text-gray-500">No products found in this category.</p>
+          <p className="text-white">No products found in this category.</p>
         </div>
       )}
     </div>

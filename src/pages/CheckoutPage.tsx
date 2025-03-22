@@ -216,8 +216,8 @@ const CheckoutPage = () => {
             const metadata = session?.user?.user_metadata || {};
             
             const newShippingAddress = {
-              firstName: (addressData?.first_name || profileData?.first_name || metadata.first_name || ''),
-              lastName: (addressData?.last_name || profileData?.last_name || metadata.last_name || ''),
+              firstName: (addressData?.first_name || profileData?.first_name || metadata.first_name || metadata.name || metadata.given_name || ''),
+              lastName: (addressData?.last_name || profileData?.last_name || metadata.last_name || metadata.family_name || ''),
               // Straße könnte in unterschiedlichen Feldern gespeichert sein
               address1: (addressData?.street_address || addressData?.street || 
                        (profileData?.address_street ? profileData.address_street : 
@@ -238,7 +238,7 @@ const CheckoutPage = () => {
               postalCode: (addressData?.postal_code || 
                           (profileData?.address_postal_code ? profileData.address_postal_code : 
                           (profileData?.address?.postalCode ? profileData.address.postalCode : 
-                          (metadata.address?.postal_code || metadata.postal_code || '')))),
+                          (metadata.address?.postal_code || metadata.postal_code || metadata.zip_code || metadata.zip || '')))),
               country: (addressData?.country || 
                        (profileData?.address_country ? profileData.address_country : 
                        (profileData?.address?.country ? profileData.address.country : 

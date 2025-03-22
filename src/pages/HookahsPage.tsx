@@ -7,7 +7,7 @@ const HookahsPage: React.FC = () => {
       categorySlug="hookahs"
       categoryName="Hookahs"
       categoryDescription="Discover our premium collection of hookahs for the ultimate smoking experience. From traditional designs to modern innovations, find the perfect hookah for your style."
-      bannerImage="/images/category-hookah.jpg"
+      bannerImage="/images/Images:Categories/Shihsa.jpg"
     />
   );
 };
