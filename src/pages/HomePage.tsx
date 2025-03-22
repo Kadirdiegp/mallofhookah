@@ -7,41 +7,41 @@ const HomePage = () => {
   
   // Categories for the category section
   const categories = [
-    { name: 'Hookahs', image: '/images/category-hookah.jpg', slug: 'hookahs' },
-    { name: 'Tobacco', image: '/images/category-tobacco.jpg', slug: 'tobacco' },
-    { name: 'Accessories', image: '/images/category-accessories.jpg', slug: 'accessories' },
-    { name: 'Vapes', image: '/images/category-vape.jpg', slug: 'vapes' },
+    { name: 'Hookahs', image: '/images/Images:Categories/Shihsa.jpg', slug: 'hookahs' },
+    { name: 'Tobacco', image: '/images/Images:Categories/tobacco.jpg', slug: 'tobacco' },
+    { name: 'Accessories', image: '/images/Images:Categories/acessories.jpg', slug: 'accessories' },
+    { name: 'Vapes', image: '/images/Images:Categories/vapes.jpg', slug: 'vapes' },
   ];
 
   // Hero section rendering
   const renderHero = () => (
-    <div className="relative w-full h-[80vh] bg-gray-900">
+    <div className="relative w-full h-[80vh] bg-dark">
       {/* Hero image as background */}
       <div 
-        className="absolute inset-0 bg-center bg-cover bg-no-repeat opacity-70"
+        className="absolute inset-0 bg-center bg-cover bg-no-repeat opacity-50"
         style={{ backgroundImage: 'url(/images/hero-hookah.jpg)' }}
       ></div>
       
       {/* Content overlay */}
       <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-          <span className="text-white">MALL of</span>{' '}
+          <span className="text-light">MALL of</span>{' '}
           <span className="text-primary">HOOKAH</span>
         </h1>
-        <p className="text-white text-lg md:text-xl max-w-2xl mb-8">
+        <p className="text-light text-lg md:text-xl max-w-2xl mb-8">
           Premium hookahs, flavor-rich tobacco, and top-quality vapes. 
           Experience luxury smoking products with nationwide shipping.
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link 
             to="/products" 
-            className="px-8 py-3 bg-primary text-white font-semibold rounded-md hover:bg-primary/90 transition-colors"
+            className="px-8 py-3 bg-primary text-light font-semibold rounded-md hover:bg-accent transition-colors"
           >
             Shop Now
           </Link>
           <Link 
             to="/products/featured" 
-            className="px-8 py-3 bg-transparent border border-white text-white font-semibold rounded-md hover:bg-white/10 transition-colors"
+            className="px-8 py-3 bg-transparent border border-light text-light font-semibold rounded-md hover:bg-dark-hover transition-colors"
           >
             View Featured
           </Link>
@@ -52,24 +52,24 @@ const HomePage = () => {
 
   // Featured products section
   const renderFeaturedProducts = () => (
-    <section className="py-16 px-4 bg-light">
+    <section className="py-16 px-4 bg-dark-lighter">
       <div className="container mx-auto">
-        <h2 className="text-3xl font-bold mb-2">Featured Products</h2>
-        <p className="text-gray-600 mb-8">Check out our most popular items</p>
+        <h2 className="text-3xl font-bold mb-2 text-light">Featured Products</h2>
+        <p className="text-gray-400 mb-8">Check out our most popular items</p>
         
         {isLoading ? (
-          <div className="flex justify-center">
+          <div className="flex justify-center text-light">
             <p>Loading products...</p>
           </div>
         ) : error ? (
-          <div className="text-red-500">
+          <div className="text-accent">
             <p>Error loading products. Please try again later.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredProducts?.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="h-64 bg-gray-200">
+              <div key={product.id} className="bg-dark-card rounded-lg shadow-md overflow-hidden border border-gray-800">
+                <div className="h-64 bg-dark">
                   <img 
                     src={product.images?.[0] || '/images/product-placeholder.jpg'} 
                     alt={product.name} 
@@ -77,13 +77,13 @@ const HomePage = () => {
                   />
                 </div>
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold">{product.name}</h3>
-                  <p className="text-gray-600 text-sm mb-2">{product.category_id}</p>
+                  <h3 className="text-lg font-semibold text-light">{product.name}</h3>
+                  <p className="text-gray-400 text-sm mb-2">{product.category_id}</p>
                   <div className="flex justify-between items-center">
                     <span className="text-primary font-bold">${product.price.toFixed(2)}</span>
                     <Link 
                       to={`/product/${product.id}`}
-                      className="px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800 transition-colors"
+                      className="px-4 py-2 bg-primary text-light rounded-md text-sm hover:bg-accent transition-colors"
                     >
                       View Details
                     </Link>
@@ -96,8 +96,8 @@ const HomePage = () => {
         
         <div className="text-center mt-10">
           <Link 
-            to="/products" 
-            className="inline-block px-6 py-3 bg-black text-white font-medium rounded-md hover:bg-gray-800 transition-colors"
+            to="/hookahs" 
+            className="inline-block px-6 py-3 bg-primary text-light font-medium rounded-md hover:bg-accent transition-colors"
           >
             View All Products
           </Link>
@@ -108,13 +108,13 @@ const HomePage = () => {
 
   // Categories Section
   const renderCategories = () => (
-    <section className="py-16 bg-white w-full">
+    <section className="py-16 bg-dark w-full">
       <div className="container mx-auto px-4 w-full max-w-full">
-        <h2 className="text-3xl font-bold text-center mb-12 text-black">Shop by Category</h2>
+        <h2 className="text-3xl font-bold text-center mb-12 text-light">Shop by Category</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {categories.map((category) => (
-            <div key={category.slug} className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
-              <div className="h-48 bg-gray-200">
+            <div key={category.slug} className="bg-dark-card rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105 border border-gray-800">
+              <div className="h-48 bg-dark">
                 <img 
                   src={category.image} 
                   alt={category.name} 
@@ -122,13 +122,13 @@ const HomePage = () => {
                 />
               </div>
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-2">{category.name}</h3>
-                <p className="text-gray-600 mb-4">
+                <h3 className="text-xl font-bold mb-2 text-light">{category.name}</h3>
+                <p className="text-gray-400 mb-4">
                   Premium {category.name.toLowerCase()} for the perfect smoking experience.
                 </p>
                 <Link
-                  to={`/products/${category.slug}`}
-                  className="text-red-500 hover:text-red-700 font-medium inline-flex items-center"
+                  to={`/${category.slug}`}
+                  className="text-primary hover:text-accent font-medium inline-flex items-center"
                 >
                   Shop {category.name}
                   <svg
@@ -154,23 +154,23 @@ const HomePage = () => {
 
   // Newsletter Section
   const renderNewsletter = () => (
-    <section className="py-16 bg-gray-100">
+    <section className="py-16 bg-dark">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Subscribe to Our Newsletter</h2>
-          <p className="text-gray-600 mb-8">
+          <h2 className="text-3xl font-bold mb-4 text-black">Subscribe to Our Newsletter</h2>
+          <p className="text-gray-400 mb-8">
             Stay updated with our latest products, offers, and hookah tips.
           </p>
           <form className="flex flex-col md:flex-row gap-4">
             <input
               type="email"
               placeholder="Your email address"
-              className="flex-grow px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="flex-grow px-4 py-3 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary"
               required
             />
             <button
               type="submit"
-              className="bg-red-500 hover:bg-red-700 text-white px-6 py-3 rounded-md font-medium transition-colors whitespace-nowrap"
+              className="bg-primary hover:bg-accent text-light px-6 py-3 rounded-md font-medium transition-colors whitespace-nowrap"
             >
               Subscribe
             </button>

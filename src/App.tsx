@@ -26,6 +26,7 @@ import TailwindTestPage from './pages/TailwindTestPage'
 import TestEmailPage from './pages/TestEmailPage'
 import OrderSuccessPage from './pages/OrderSuccessPage'
 import OAuthDebugPage from './pages/OAuthDebugPage'
+import ProductDetailPage from './pages/ProductDetailPage'
 
 // Initialize React Query client
 const queryClient = new QueryClient()
@@ -57,10 +58,10 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/test-email" element={<TestEmailPage />} />
             <Route path="/oauth-debug" element={<OAuthDebugPage />} />
+            <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="*" element={<NotFoundPage />} />
             {/* Additional routes will be uncommented as we create these pages */}
             {/* 
-            <Route path="/product/:id" element={<ProductDetailPage />} />
             <Route path="/admin" element={<AdminDashboardPage />} />
             */}
           </Routes>

@@ -248,10 +248,27 @@ const ProductListPage = () => {
     });
   };
 
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleCategoryFilterChange = (category: string | undefined) => {
     setFilterOptions(prev => ({
       ...prev,
-      sortBy: e.target.value as FilterOptions['sortBy']
+      categories: category ? [category] : undefined
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilterOptions({
+      categories: category ? [category] : undefined,
+      minPrice: undefined,
+      maxPrice: undefined,
+      sortBy: 'newest',
+      searchQuery: searchQuery || undefined,
+    });
+  };
+
+  const handleSortChange = (value: string) => {
+    setFilterOptions(prev => ({
+      ...prev,
+      sortBy: value as FilterOptions['sortBy']
     }));
   };
 
@@ -263,47 +280,98 @@ const ProductListPage = () => {
     }));
   };
 
-  const getCategoryTitle = () => {
-    if (!category) return 'All Products';
-    
-    const categoryMap: Record<string, string> = {
-      'hookah': 'Hookahs',
-      'vapes': 'Vapes & E-Cigarettes',
-      'tobacco': 'Tobacco & Flavors',
-      'accessories': 'Accessories'
-    };
-    
-    return categoryMap[category] || 'Products';
-  };
-
   return (
-    <div className="bg-light min-h-screen py-12">
-      <div className="container mx-auto px-4">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">{getCategoryTitle()}</h1>
-          {searchQuery && (
-            <p className="text-gray-600 mt-2">
-              Search results for: <span className="font-medium">"{searchQuery}"</span>
-            </p>
-          )}
+    <div className="bg-dark text-light">
+      {/* Page Header */}
+      <div className="bg-dark-lighter py-8">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl font-bold">
+            {searchQuery ? `Search Results: ${searchQuery}` : category ? `${category.charAt(0).toUpperCase() + category.slice(1)}` : 'All Products'}
+          </h1>
+          <div className="flex items-center mt-2">
+            <Link to="/" className="text-primary hover:text-accent">Home</Link>
+            <span className="mx-2">/</span>
+            <span className="text-gray-400">
+              {searchQuery ? 'Search Results' : category ? category.charAt(0).toUpperCase() + category.slice(1) : 'All Products'}
+            </span>
+          </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filters */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="font-bold text-xl mb-4">Filters</h2>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Sidebar / Filters */}
+          <div className="lg:w-1/4">
+            <div className="bg-dark-card p-4 rounded-lg shadow-md border border-gray-800 sticky top-24">
+              <h2 className="text-xl font-bold mb-4">Filters</h2>
+              
+              {/* Categories */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-2 text-gray-300">Categories</h3>
+                <div className="space-y-2">
+                  <button 
+                    className={`block w-full text-left px-3 py-2 rounded-md ${
+                      !filterOptions.categories 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'hover:bg-gray-800'
+                    }`}
+                    onClick={() => handleCategoryFilterChange(undefined)}
+                  >
+                    All Categories
+                  </button>
+                  <button 
+                    className={`block w-full text-left px-3 py-2 rounded-md ${
+                      filterOptions.categories?.includes('hookah') 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'hover:bg-gray-800'
+                    }`}
+                    onClick={() => handleCategoryFilterChange('hookah')}
+                  >
+                    Hookahs
+                  </button>
+                  <button 
+                    className={`block w-full text-left px-3 py-2 rounded-md ${
+                      filterOptions.categories?.includes('vapes') 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'hover:bg-gray-800'
+                    }`}
+                    onClick={() => handleCategoryFilterChange('vapes')}
+                  >
+                    Vapes
+                  </button>
+                  <button 
+                    className={`block w-full text-left px-3 py-2 rounded-md ${
+                      filterOptions.categories?.includes('tobacco') 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'hover:bg-gray-800'
+                    }`}
+                    onClick={() => handleCategoryFilterChange('tobacco')}
+                  >
+                    Tobacco
+                  </button>
+                  <button 
+                    className={`block w-full text-left px-3 py-2 rounded-md ${
+                      filterOptions.categories?.includes('accessories') 
+                        ? 'bg-primary/10 text-primary' 
+                        : 'hover:bg-gray-800'
+                    }`}
+                    onClick={() => handleCategoryFilterChange('accessories')}
+                  >
+                    Accessories
+                  </button>
+                </div>
+              </div>
               
               {/* Price Range */}
               <div className="mb-6">
-                <h3 className="font-semibold mb-3">Price Range</h3>
+                <h3 className="font-semibold mb-2 text-gray-300">Price Range</h3>
                 <div className="space-y-2">
                   <button 
                     className={`block w-full text-left px-3 py-2 rounded-md ${
                       !filterOptions.minPrice && !filterOptions.maxPrice 
                         ? 'bg-primary/10 text-primary' 
-                        : 'hover:bg-gray-100'
+                        : 'hover:bg-gray-800'
                     }`}
                     onClick={() => handlePriceFilterChange(undefined, undefined)}
                   >
@@ -313,7 +381,7 @@ const ProductListPage = () => {
                     className={`block w-full text-left px-3 py-2 rounded-md ${
                       filterOptions.maxPrice === 25 
                         ? 'bg-primary/10 text-primary' 
-                        : 'hover:bg-gray-100'
+                        : 'hover:bg-gray-800'
                     }`}
                     onClick={() => handlePriceFilterChange(0, 25)}
                   >
@@ -323,7 +391,7 @@ const ProductListPage = () => {
                     className={`block w-full text-left px-3 py-2 rounded-md ${
                       filterOptions.minPrice === 25 && filterOptions.maxPrice === 50 
                         ? 'bg-primary/10 text-primary' 
-                        : 'hover:bg-gray-100'
+                        : 'hover:bg-gray-800'
                     }`}
                     onClick={() => handlePriceFilterChange(25, 50)}
                   >
@@ -333,7 +401,7 @@ const ProductListPage = () => {
                     className={`block w-full text-left px-3 py-2 rounded-md ${
                       filterOptions.minPrice === 50 && filterOptions.maxPrice === 100 
                         ? 'bg-primary/10 text-primary' 
-                        : 'hover:bg-gray-100'
+                        : 'hover:bg-gray-800'
                     }`}
                     onClick={() => handlePriceFilterChange(50, 100)}
                   >
@@ -343,7 +411,7 @@ const ProductListPage = () => {
                     className={`block w-full text-left px-3 py-2 rounded-md ${
                       filterOptions.minPrice === 100 
                         ? 'bg-primary/10 text-primary' 
-                        : 'hover:bg-gray-100'
+                        : 'hover:bg-gray-800'
                     }`}
                     onClick={() => handlePriceFilterChange(100, undefined)}
                   >
@@ -352,101 +420,43 @@ const ProductListPage = () => {
                 </div>
               </div>
               
-              {/* Categories (only show if not already filtered by category) */}
-              {!category && (
-                <div className="mb-6">
-                  <h3 className="font-semibold mb-3">Categories</h3>
-                  <div className="space-y-2">
-                    <Link 
-                      to="/products/hookah"
-                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
-                    >
-                      Hookahs
-                    </Link>
-                    <Link 
-                      to="/products/vapes"
-                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
-                    >
-                      Vapes & E-Cigarettes
-                    </Link>
-                    <Link 
-                      to="/products/tobacco"
-                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
-                    >
-                      Tobacco & Flavors
-                    </Link>
-                    <Link 
-                      to="/products/accessories"
-                      className="block w-full text-left px-3 py-2 rounded-md hover:bg-gray-100"
-                    >
-                      Accessories
-                    </Link>
-                  </div>
-                </div>
-              )}
-              
-              {/* Clear Filters Button */}
-              <button 
-                className="w-full py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors"
-                onClick={() => {
-                  setFilterOptions({
-                    categories: category ? [category] : undefined,
-                    minPrice: undefined,
-                    maxPrice: undefined,
-                    sortBy: 'newest',
-                    searchQuery: searchQuery || undefined,
-                  });
-                }}
-              >
-                Clear Filters
-              </button>
-            </div>
-          </div>
-          
-          {/* Products */}
-          <div className="lg:col-span-3">
-            {/* Sort & Results Count */}
-            <div className="flex flex-wrap items-center justify-between mb-6">
-              <p className="text-gray-600">
-                {isLoading ? 'Loading products...' : `${products.length} products found`}
-              </p>
-              <div className="flex items-center">
-                <label htmlFor="sort" className="mr-2 text-gray-600">Sort by:</label>
-                <select
-                  id="sort"
-                  className="border border-gray-300 rounded-md p-2 bg-white focus:outline-none focus:ring-2 focus:ring-primary"
+              {/* Sort By */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-2 text-gray-300">Sort By</h3>
+                <select 
                   value={filterOptions.sortBy}
-                  onChange={handleSortChange}
+                  onChange={(e) => handleSortChange(e.target.value)}
+                  className="w-full p-2 rounded-md border border-gray-700 bg-dark text-light focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <option value="newest">Newest</option>
                   <option value="price_asc">Price: Low to High</option>
                   <option value="price_desc">Price: High to Low</option>
                 </select>
               </div>
+              
+              {/* Clear Filters */}
+              <button 
+                onClick={clearFilters}
+                className="w-full py-2 px-4 bg-gray-800 hover:bg-gray-700 text-light rounded-md transition-colors"
+              >
+                Clear Filters
+              </button>
             </div>
-            
-            {/* Products Grid */}
+          </div>
+          
+          {/* Product Grid */}
+          <div className="lg:w-3/4">
             {isLoading ? (
-              <div className="flex justify-center py-12">
+              <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : products.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-md p-8 text-center">
-                <h3 className="text-xl font-bold mb-2">No products found</h3>
-                <p className="text-gray-600 mb-6">
-                  We couldn't find any products matching your criteria.
-                </p>
+              <div className="bg-dark-card p-6 rounded-lg text-center border border-gray-800">
+                <h3 className="text-xl font-semibold mb-2">No products found</h3>
+                <p className="text-gray-400 mb-4">Try adjusting your filters or search criteria.</p>
                 <button 
-                  className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-md font-medium transition-colors"
-                  onClick={() => {
-                    setFilterOptions({
-                      categories: category ? [category] : undefined,
-                      minPrice: undefined,
-                      maxPrice: undefined,
-                      sortBy: 'newest',
-                      searchQuery: undefined,
-                    });
-                  }}
+                  onClick={clearFilters}
+                  className="py-2 px-4 bg-primary hover:bg-accent text-light rounded-md transition-colors"
                 >
                   Clear Filters
                 </button>
@@ -454,9 +464,9 @@ const ProductListPage = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => (
-                  <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+                  <div key={product.id} className="bg-dark-card rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-800">
                     <Link to={`/product/${product.id}`} className="block">
-                      <div className="h-48 bg-gray-200">
+                      <div className="h-48 bg-dark">
                         {product.images && product.images.length > 0 ? (
                           <img 
                             src={product.images[0]} 
@@ -464,8 +474,8 @@ const ProductListPage = () => {
                             className="w-full h-full object-contain"
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-300">
-                            <span className="text-gray-500">{product.name} Image</span>
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                            <span className="text-gray-400">{product.name} Image</span>
                           </div>
                         )}
                       </div>
@@ -476,13 +486,13 @@ const ProductListPage = () => {
                           {product.name}
                         </h3>
                       </Link>
-                      <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
+                      <p className="text-gray-400 text-sm mb-2 line-clamp-2">{product.description}</p>
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-bold text-primary">${product.price.toFixed(2)}</span>
                         <div className="flex space-x-2">
                           <Link
                             to={`/product/${product.id}`}
-                            className="p-2 text-gray-500 hover:text-primary rounded-md transition-colors"
+                            className="p-2 text-gray-400 hover:text-primary rounded-md transition-colors"
                             title="View Details"
                           >
                             <svg
@@ -500,9 +510,12 @@ const ProductListPage = () => {
                             </svg>
                           </Link>
                           <button
-                            className="p-2 text-gray-500 hover:text-primary rounded-md transition-colors"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleAddToCart(product);
+                            }}
+                            className="p-2 text-gray-400 hover:text-primary rounded-md transition-colors"
                             title="Add to Cart"
-                            onClick={() => handleAddToCart(product)}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -510,16 +523,12 @@ const ProductListPage = () => {
                               viewBox="0 0 20 20"
                               fill="currentColor"
                             >
-                              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                              <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3z" />
+                              <path d="M16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                             </svg>
                           </button>
                         </div>
                       </div>
-                      {product.stock <= 5 && (
-                        <p className="text-sm text-red-500 mt-2">
-                          Only {product.stock} left in stock!
-                        </p>
-                      )}
                     </div>
                   </div>
                 ))}

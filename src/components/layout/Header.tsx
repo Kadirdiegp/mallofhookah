@@ -71,7 +71,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white text-secondary shadow-md w-full border-b border-gray-200">
+    <header className="bg-dark-lighter text-light shadow-md w-full border-b border-gray-800">
       <div className="container mx-auto px-4 py-4 w-full max-w-full">
         <div className="flex flex-wrap items-center justify-between">
           {/* Logo */}
@@ -81,7 +81,7 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="lg:hidden p-2 rounded-md hover:bg-gray-100 focus:outline-none"
+            className="lg:hidden p-2 rounded-md hover:bg-dark-card focus:outline-none"
             onClick={toggleMenu}
           >
             <svg 
@@ -102,16 +102,16 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
-            <Link to="/hookahs" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/hookahs" className="text-light hover:text-primary transition-colors">
               Hookahs
             </Link>
-            <Link to="/vapes" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/vapes" className="text-light hover:text-primary transition-colors">
               Vapes
             </Link>
-            <Link to="/tobacco" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/tobacco" className="text-light hover:text-primary transition-colors">
               Tobacco
             </Link>
-            <Link to="/accessories" className="text-secondary hover:text-primary transition-colors">
+            <Link to="/accessories" className="text-light hover:text-primary transition-colors">
               Accessories
             </Link>
           </nav>
@@ -121,7 +121,7 @@ const Header = () => {
             <input
               type="text"
               placeholder="Search products..."
-              className="w-full rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm text-secondary focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full rounded-lg border border-gray-600 bg-dark-card py-2 px-4 text-sm text-light focus:outline-none focus:ring-2 focus:ring-primary"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -181,7 +181,7 @@ const Header = () => {
                     <img 
                       src={getUserAvatar()} 
                       alt="Profile" 
-                      className="h-8 w-8 rounded-full object-cover border border-gray-200"
+                      className="h-8 w-8 rounded-full object-cover border border-gray-600"
                     />
                   ) : (
                     <div className="flex items-center">
@@ -205,30 +205,30 @@ const Header = () => {
                 </button>
                 
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
+                  <div className="absolute right-0 mt-2 w-48 bg-dark-card rounded-md shadow-lg py-1 z-10 border border-gray-600">
                     {user.app_metadata?.provider === 'google' && (
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-xs text-gray-500">Signed in with Google</p>
+                      <div className="px-4 py-2 border-b border-gray-600">
+                        <p className="text-xs text-gray-400">Signed in with Google</p>
                         <p className="text-sm font-medium truncate">{user.email}</p>
                       </div>
                     )}
                     <Link 
                       to="/profile" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-dark-hover"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       Your Profile
                     </Link>
                     <Link 
                       to="/profile?tab=orders" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-sm text-gray-300 hover:bg-dark-hover"
                       onClick={() => setIsUserMenuOpen(false)}
                     >
                       Your Orders
                     </Link>
                     <button
                       onClick={handleSignOut}
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-dark-hover"
                     >
                       Sign Out
                     </button>
@@ -258,7 +258,7 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden mt-4 py-4 border-t border-gray-200">
+          <div className="lg:hidden mt-4 py-4 border-t border-gray-600">
             <nav className="flex flex-col space-y-3">
               <Link 
                 to="/hookahs" 
@@ -294,7 +294,7 @@ const Header = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full rounded-lg border border-gray-300 bg-white py-2 px-4 text-sm text-secondary focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border border-gray-600 bg-dark-card py-2 px-4 text-sm text-light focus:outline-none focus:ring-2 focus:ring-primary"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
