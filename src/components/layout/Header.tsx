@@ -81,12 +81,12 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="lg:hidden p-2 rounded-md hover:bg-dark-card focus:outline-none"
+            className="lg:hidden p-2 rounded-md bg-dark-card hover:bg-dark-hover focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={toggleMenu}
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6" 
+              className="h-6 w-6 text-light" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -258,32 +258,32 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden mt-4 py-4 border-t border-gray-600">
+          <div className="lg:hidden mt-4 py-4 border-t border-gray-600 bg-dark text-light">
             <nav className="flex flex-col space-y-3">
               <Link 
                 to="/hookahs" 
-                className="hover:text-primary transition-colors"
+                className="text-light hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 Hookahs
               </Link>
               <Link 
                 to="/vapes" 
-                className="hover:text-primary transition-colors"
+                className="text-light hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 Vapes
               </Link>
               <Link 
                 to="/tobacco" 
-                className="hover:text-primary transition-colors"
+                className="text-light hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 Tobacco
               </Link>
               <Link 
                 to="/accessories" 
-                className="hover:text-primary transition-colors"
+                className="text-light hover:text-primary transition-colors"
                 onClick={toggleMenu}
               >
                 Accessories
@@ -294,7 +294,7 @@ const Header = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full rounded-lg border border-gray-600 bg-dark-card py-2 px-4 text-sm text-light focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border border-gray-700 bg-dark-card py-2 px-4 text-sm text-light focus:outline-none focus:ring-2 focus:ring-primary"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -322,7 +322,7 @@ const Header = () => {
             <div className="mt-4 flex items-center space-x-6">
               <Link 
                 to="/cart" 
-                className="relative hover:text-primary transition-colors flex items-center"
+                className="relative text-light hover:text-primary transition-colors flex items-center"
                 onClick={toggleMenu}
               >
                 <svg
@@ -348,7 +348,7 @@ const Header = () => {
               </Link>
               <Link 
                 to="/login" 
-                className="hover:text-primary transition-colors flex items-center"
+                className="text-light hover:text-primary transition-colors flex items-center"
                 onClick={toggleMenu}
               >
                 <svg
