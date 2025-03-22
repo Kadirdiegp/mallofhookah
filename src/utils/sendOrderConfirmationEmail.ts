@@ -1,5 +1,25 @@
-import { ShippingAddress } from '../types';
 import { supabase } from '../services/supabase';
+
+// Create a more flexible shipping address type for email
+interface EmailShippingAddress {
+  firstName?: string;
+  lastName?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  phone?: string;
+  shipping_name?: string;
+  shipping_street?: string;
+  shipping_apartment?: string;
+  shipping_city?: string;
+  shipping_state?: string;
+  shipping_postal_code?: string;
+  shipping_country?: string;
+  shipping_phone?: string;
+}
 
 // Typen für die E-Mail-Benachrichtigung
 interface OrderConfirmationEmailData {
@@ -11,13 +31,15 @@ interface OrderConfirmationEmailData {
     quantity: number;
     price_per_unit: number;
     total_price: number;
+    product_name?: string;
+    product_image?: string;
   }>;
   total: number;
   subtotal: number;
   shipping: number;
   paymentMethod: string;
   deliveryMethod: string;
-  shippingAddress?: ShippingAddress;
+  shippingAddress?: EmailShippingAddress;
 }
 
 /**
@@ -103,23 +125,23 @@ function generateEmailContent(data: OrderConfirmationEmailData): string {
             </tr>
             ${data.orderItems.map(item => `
               <tr>
-                <td>${item.product_id}</td>
-                <td>${item.quantity}</td>
-                <td>${item.price_per_unit.toFixed(2)} €</td>
-                <td>${item.total_price.toFixed(2)} €</td>
+                <td>${item.product_id || 'Unbekanntes Produkt'}</td>
+                <td>${item.quantity || 0}</td>
+                <td>${(item.price_per_unit ? item.price_per_unit.toFixed(2) : '0.00')} €</td>
+                <td>${(item.total_price ? item.total_price.toFixed(2) : '0.00')} €</td>
               </tr>
             `).join('')}
             <tr>
               <td colspan="3" style="text-align: right;"><strong>Zwischensumme:</strong></td>
-              <td>${data.subtotal.toFixed(2)} €</td>
+              <td>${(data.subtotal ? data.subtotal.toFixed(2) : '0.00')} €</td>
             </tr>
             <tr>
               <td colspan="3" style="text-align: right;"><strong>Versand:</strong></td>
-              <td>${data.shipping.toFixed(2)} €</td>
+              <td>${(data.shipping ? data.shipping.toFixed(2) : '0.00')} €</td>
             </tr>
             <tr>
               <td colspan="3" style="text-align: right;"><strong>Gesamtsumme:</strong></td>
-              <td>${data.total.toFixed(2)} €</td>
+              <td>${(data.total ? data.total.toFixed(2) : '0.00')} €</td>
             </tr>
           </table>
         </div>

@@ -1,9 +1,33 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useParams } from 'react-router-dom';
 import { supabase } from '../services/supabase';
-import { ShippingAddress } from '../types';
 import { sendOrderConfirmationEmail } from '../utils/sendOrderConfirmationEmail';
 
+// Define a more specific type for shipping address
+interface OrderShippingAddress {
+  // From database format
+  shipping_name?: string;
+  shipping_street?: string;
+  shipping_apartment?: string;
+  shipping_city?: string;
+  shipping_state?: string;
+  shipping_postal_code?: string;
+  shipping_country?: string;
+  shipping_phone?: string;
+  
+  // From previous format
+  firstName?: string;
+  lastName?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  phone?: string;
+}
+
+// Updated interface to accept multiple possible formats for shipping address
 interface OrderDetail {
   orderId: string;
   orderData: {
@@ -13,33 +37,40 @@ interface OrderDetail {
       quantity: number;
       price_per_unit: number;
       total_price: number;
+      product_name?: string;
+      product_image?: string;
     }>;
     total: number;
     subtotal: number;
     paymentMethod: string;
     deliveryMethod: string;
-    shippingAddress: ShippingAddress | null;
+    shippingAddress: OrderShippingAddress; 
   };
 }
 
 const OrderSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
   
   // Bestelldaten
   const [orderDetails, setOrderDetails] = useState<OrderDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Bestellnummer aus der URL extrahieren (falls vorhanden)
-  const orderId = new URLSearchParams(location.search).get('order_id');
+  // Bestellnummer aus der URL extrahieren (Route-Parameter oder Query-Parameter)
+  const routeOrderId = params.id;
+  const queryOrderId = new URLSearchParams(location.search).get('order_id');
+  const orderId = routeOrderId || queryOrderId;
   
   useEffect(() => {
     const fetchOrderDetails = async () => {
       setIsLoading(true);
+      console.log("Attempting to fetch order details for ID:", orderId);
       try {
         // Fall 1: Details wurden über location.state übergeben
         if (location.state && location.state.orderId && location.state.orderData) {
+          console.log("Using order details from location state");
           setOrderDetails({
             orderId: location.state.orderId,
             orderData: location.state.orderData
@@ -48,8 +79,11 @@ const OrderSuccessPage = () => {
         } 
         // Fall 2: Versuche, die Bestellung aus der Datenbank zu laden (falls möglich)
         else if (orderId) {
+          console.log("Fetching order from database with ID:", orderId);
           const { data: sessionData } = await supabase.auth.getSession();
           const userId = sessionData?.session?.user?.id;
+          
+          console.log("Current user ID:", userId);
           
           if (!userId) {
             setError('Sie müssen eingeloggt sein, um Ihre Bestellungen zu sehen');
@@ -57,42 +91,71 @@ const OrderSuccessPage = () => {
             return;
           }
           
-          const { data, error: fetchError } = await supabase
-            .from('orders')
+          // Try to fetch the order without user_id filter first (debug only)
+          const { data: allOrderData, error: allOrderError } = await supabase
+            .from('reseller_orders')
             .select('*')
             .eq('id', orderId)
-            .eq('user_id', userId)
             .single();
             
-          if (fetchError || !data) {
-            console.error('Fehler beim Laden der Bestellung:', fetchError);
-            setError('Die angeforderte Bestellung konnte nicht gefunden werden');
-          } else {
-            // Bestellitems abrufen
-            const { data: itemsData, error: itemsError } = await supabase
-              .from('order_items')
-              .select('*')
-              .eq('order_id', orderId);
-              
-            if (itemsError) {
-              console.error('Fehler beim Laden der Bestellitems:', itemsError);
-            }
+          console.log("Debug - Order exists?", !!allOrderData, "Error:", allOrderError);
+          
+          // Bestellung aus der reseller_orders Tabelle abrufen - without user_id filter
+          const { data: orderData, error: orderError } = await supabase
+            .from('reseller_orders')
+            .select('*, reseller_order_items(*)')
+            .eq('id', orderId)
+            .single();
             
-            // Bestelldaten zusammensetzen
-            setOrderDetails({
-              orderId: data.id,
-              orderData: {
-                items: itemsData || [],
-                total: data.total_amount,
-                subtotal: data.subtotal,
-                paymentMethod: data.payment_method,
-                deliveryMethod: data.delivery_method,
-                shippingAddress: data.shipping_address
-              }
-            });
-            setError('');
+          if (orderError) {
+            console.error('Fehler beim Laden der Bestellung:', orderError);
+            console.log('Order Error Details:', JSON.stringify(orderError));
+            setError('Die Bestellung konnte nicht geladen werden.');
+            setIsLoading(false);
+            return;
           }
+          
+          console.log("Order data found:", orderData);
+          console.log("Order items from join:", orderData.reseller_order_items);
+          
+          // Create proper order items array
+          const orderItems = orderData.reseller_order_items || [];
+          
+          // Always set order details even if shipping address is null or empty
+          setOrderDetails({
+            orderId: orderData.id,
+            orderData: {
+              items: orderItems,
+              total: orderData.total_amount || 0,
+              subtotal: orderData.subtotal || 0,
+              paymentMethod: orderData.payment_method || 'unbekannt',
+              deliveryMethod: orderData.shipping_method || 'shipping',
+              // Always create a shipping address object even if fields are incomplete
+              shippingAddress: {
+                shipping_name: orderData.shipping_name || '',
+                shipping_street: orderData.shipping_street || '',
+                shipping_apartment: orderData.shipping_apartment || '',
+                shipping_city: orderData.shipping_city || '',
+                shipping_state: orderData.shipping_state || '',
+                shipping_postal_code: orderData.shipping_postal_code || '',
+                shipping_country: orderData.shipping_country || '',
+                shipping_phone: orderData.shipping_phone || '',
+                // Add properties for compatibility with the imported ShippingAddress type
+                firstName: orderData.shipping_name?.split(' ')[0] || '',
+                lastName: orderData.shipping_name?.split(' ').slice(1).join(' ') || '',
+                address1: orderData.shipping_street || '',
+                address2: orderData.shipping_apartment || '',
+                city: orderData.shipping_city || '',
+                state: orderData.shipping_state || '',
+                postalCode: orderData.shipping_postal_code || '',
+                country: orderData.shipping_country || '',
+                phone: orderData.shipping_phone || ''
+              }
+            }
+          });
+          setError('');
         } else {
+          console.error('No order ID found in URL');
           setError('Keine Bestelldetails gefunden');
         }
       } catch (err) {
@@ -104,8 +167,11 @@ const OrderSuccessPage = () => {
     };
     
     fetchOrderDetails();
-    
-    // E-Mail-Versand simulieren nur durchführen, wenn orderDetails existieren
+  }, [location.state, orderId]);
+  
+  // Separate useEffect für E-Mail-Versand
+  useEffect(() => {
+    // E-Mail-Versand nur durchführen, wenn orderDetails existieren
     if (orderDetails) {
       const simulateSendOrderConfirmationEmail = async () => {
         try {
@@ -144,18 +210,44 @@ const OrderSuccessPage = () => {
           
           console.log('Verwendeter Benutzername für E-Mail:', userName);
           
-          // Demo: E-Mail senden mit den verfügbaren Daten
+          // Get product info for each order item
+          const enhancedItems = await Promise.all(
+            orderDetails.orderData.items.map(async (item) => {
+              try {
+                // If we already have product details, return as is
+                if (item.product_name) return item;
+                
+                // Fetch product details
+                const { data: productData } = await supabase
+                  .from('products')
+                  .select('name, images')
+                  .eq('id', item.product_id)
+                  .single();
+                  
+                return {
+                  ...item,
+                  product_name: productData?.name || 'Unknown Product',
+                  product_image: productData?.images ? productData.images[0] : null
+                };
+              } catch (err) {
+                console.error('Error fetching product details:', err);
+                return item;
+              }
+            })
+          );
+          
+          // Send email with the enhanced order items
           const emailSent = await sendOrderConfirmationEmail({
             orderId: orderDetails.orderId,
             userEmail,
             userName,
-            orderItems: orderDetails.orderData.items,
+            orderItems: enhancedItems,
             total: orderDetails.orderData.total,
             subtotal: orderDetails.orderData.subtotal,
             shipping: orderDetails.orderData.total - orderDetails.orderData.subtotal,
             paymentMethod: orderDetails.orderData.paymentMethod,
             deliveryMethod: orderDetails.orderData.deliveryMethod,
-            shippingAddress: orderDetails.orderData.shippingAddress || undefined
+            shippingAddress: orderDetails.orderData.shippingAddress
           });
           
           console.log(`Bestellbestätigung per E-Mail ${emailSent ? 'erfolgreich' : 'nicht'} gesendet`);
@@ -165,14 +257,16 @@ const OrderSuccessPage = () => {
       };
       simulateSendOrderConfirmationEmail();
     }
-    
-    // Zur Startseite nach 30 Sekunden weiterleiten
+  }, [orderDetails]);
+  
+  // Zur Startseite nach 30 Sekunden weiterleiten
+  useEffect(() => {
     const redirectTimer = setTimeout(() => {
       navigate('/');
     }, 30000);
     
     return () => clearTimeout(redirectTimer);
-  }, [navigate, location, orderId, orderDetails]);
+  }, [navigate]);
   
   // Formatieren eines Preises
   const formatPrice = (price: number): string => {
@@ -278,15 +372,41 @@ const OrderSuccessPage = () => {
                 </div>
               </div>
               
-              {orderDetails.orderData.shippingAddress && orderDetails.orderData.deliveryMethod === 'shipping' && (
+              {/* Only show shipping address if we have at least some basic address info */}
+              {orderDetails.orderData.shippingAddress && 
+               (orderDetails.orderData.shippingAddress.shipping_street || 
+                orderDetails.orderData.shippingAddress.shipping_city ||
+                orderDetails.orderData.shippingAddress.shipping_postal_code) && (
                 <div className="mb-6">
                   <h3 className="font-medium text-white mb-2">Lieferadresse</h3>
                   <address className="not-italic text-gray-400">
-                    {orderDetails.orderData.shippingAddress.firstName} {orderDetails.orderData.shippingAddress.lastName}<br />
-                    {orderDetails.orderData.shippingAddress.address1}<br />
-                    {orderDetails.orderData.shippingAddress.address2 && `${orderDetails.orderData.shippingAddress.address2}<br />`}
-                    {orderDetails.orderData.shippingAddress.postalCode} {orderDetails.orderData.shippingAddress.city}<br />
-                    {orderDetails.orderData.shippingAddress.country}
+                    {/* Display name - support multiple formats */}
+                    {(orderDetails.orderData.shippingAddress.shipping_name || 
+                      (orderDetails.orderData.shippingAddress.firstName && orderDetails.orderData.shippingAddress.lastName && 
+                        `${orderDetails.orderData.shippingAddress.firstName} ${orderDetails.orderData.shippingAddress.lastName}`) ||
+                      ''
+                    )}<br />
+                    
+                    {/* Display street/address - support multiple formats */}
+                    {(orderDetails.orderData.shippingAddress.shipping_street || 
+                      orderDetails.orderData.shippingAddress.address1 || 
+                      '')}<br />
+                    
+                    {/* Display apartment/address2 if available */}
+                    {(orderDetails.orderData.shippingAddress.shipping_apartment || 
+                      orderDetails.orderData.shippingAddress.address2) && 
+                      `${orderDetails.orderData.shippingAddress.shipping_apartment || 
+                          orderDetails.orderData.shippingAddress.address2}<br />`}
+                    
+                    {/* Display postal code and city */}
+                    {(orderDetails.orderData.shippingAddress.shipping_postal_code || 
+                      orderDetails.orderData.shippingAddress.postalCode || '')} {' '}
+                    {(orderDetails.orderData.shippingAddress.shipping_city || 
+                      orderDetails.orderData.shippingAddress.city || '')}<br />
+                    
+                    {/* Display country */}
+                    {(orderDetails.orderData.shippingAddress.shipping_country || 
+                      orderDetails.orderData.shippingAddress.country || '')}
                   </address>
                 </div>
               )}

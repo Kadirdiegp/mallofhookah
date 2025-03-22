@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabase';
-import { testAddressesTablePermissions } from '../utils/testDatabasePerms';
-import { detectAddressTableColumns } from '../utils/detectAddressTableColumns';
 
 // Typen für Bestellungen und Benutzer
 interface Order {
@@ -30,7 +28,7 @@ interface UserProfile {
     state: string;
     postalCode: string;
     country: string;
-    apt?: string; // Add apt field to address object
+    apt?: string; 
   };
 }
 
@@ -54,19 +52,28 @@ const loadOrdersFromDatabase = async (
   
   setLoadingOrders(true);
   try {
-    const { data: ordersData, error } = await supabase
-      .from('orders')
+    // Bestellungen nur aus der reseller_orders Tabelle laden
+    const { data: resellerOrdersData, error: resellerOrdersError } = await supabase
+      .from('reseller_orders')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false });
       
-    if (error) {
-      console.error('Fehler beim Laden der Bestellungen:', error);
+    if (resellerOrdersError) {
+      console.error('Fehler beim Laden der Bestellungen aus "reseller_orders":', resellerOrdersError);
+      setOrders([]);
+      setLoadingOrders(false);
+      return;
+    }
+
+    if (!resellerOrdersData || resellerOrdersData.length === 0) {
+      setOrders([]);
+      setLoadingOrders(false);
       return;
     }
     
     // Umwandlung der Bestelldaten in das Format, das das UI erwartet
-    const formattedOrders = ordersData?.map(order => {
+    const formattedOrders = resellerOrdersData?.map(order => {
       // Versuche, den Gesamtbetrag aus verschiedenen Quellen zu bekommen
       let totalAmount = 0;
       
@@ -100,6 +107,7 @@ const loadOrdersFromDatabase = async (
     setOrders(formattedOrders.length > 0 ? formattedOrders : []);
   } catch (err) {
     console.error('Unerwarteter Fehler beim Laden der Bestellungen:', err);
+    setOrders([]);
   } finally {
     setLoadingOrders(false);
   }
@@ -140,7 +148,7 @@ const ProfilePage = () => {
       state: '',
       postalCode: '',
       country: '',
-      apt: '', // Initialize apt field
+      apt: '', 
     }
   });
   
@@ -155,7 +163,7 @@ const ProfilePage = () => {
       state: '',
       postalCode: '',
       country: '',
-      apt: '', // Initialize apt field
+      apt: '', 
     }
   });
   
@@ -192,7 +200,7 @@ const ProfilePage = () => {
           state: '',
           postalCode: '',
           country: '',
-          apt: '', // Initialize apt field
+          apt: '', 
         }
       };
       
@@ -232,7 +240,7 @@ const ProfilePage = () => {
           state: metadata.address_state || '',
           postalCode: metadata.address_postal_code || '',
           country: metadata.address_country || '',
-          apt: metadata.address_apt || '', // Add apt field
+          apt: metadata.address_apt || '', 
         }
       });
       
@@ -249,7 +257,7 @@ const ProfilePage = () => {
           state: metadata.address_state || '',
           postalCode: metadata.address_postal_code || '',
           country: metadata.address_country || '',
-          apt: metadata.address_apt || '', // Add apt field
+          apt: metadata.address_apt || '', 
         }
       });
     }
@@ -279,13 +287,6 @@ const ProfilePage = () => {
     setIsSaving(true);
     
     try {
-      // Detect the actual column structure before trying operations
-      const tableStructure = await detectAddressTableColumns();
-      console.log('Detected table structure:', tableStructure);
-      
-      // Test database permissions
-      await testAddressesTablePermissions();
-      
       // In a real app, you would save the profile to the backend here
       // For now, we'll just simulate an API call
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -303,342 +304,13 @@ const ProfilePage = () => {
             address_state: profile.address.state,
             address_postal_code: profile.address.postalCode,
             address_country: profile.address.country,
-            address_apt: profile.address.apt, // Add apt field
+            address_apt: profile.address.apt, 
           }
         });
         
         if (userError) {
           throw userError;
         }
-
-        // Log user ID for debugging
-        console.log('Current user ID:', user.id);
-
-        try {
-          // ATTEMPT 1: Try the original field names first
-          const addressData = {
-            user_id: user.id,
-            street: profile.address.street || '',
-            city: profile.address.city || '',
-            state: profile.address.state || '',
-            postal_code: profile.address.postalCode || '',
-            country: profile.address.country || '',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          };
-
-          // Use detected table structure to determine best approach
-          if (tableStructure && tableStructure.schemaType) {
-            if (tableStructure.schemaType === 'json') {
-              // Use the JSON approach for an 'address' column
-              const addressJson = {
-                user_id: user.id,
-                address: JSON.stringify({
-                  street: profile.address.street || '',
-                  city: profile.address.city || '',
-                  state: profile.address.state || '',
-                  postalCode: profile.address.postalCode || '',
-                  country: profile.address.country || '',
-                  apt: profile.address.apt || '', // Add apt field
-                }),
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              };
-              
-              // Check if user already has an address
-              const { data: existingAddresses } = await supabase
-                .from('addresses')
-                .select('id')
-                .eq('user_id', user.id);
-              
-              if (existingAddresses && existingAddresses.length > 0) {
-                // Update with JSON format
-                console.log('Updating address with JSON format');
-                const { error } = await supabase
-                  .from('addresses')
-                  .update({
-                    address: addressJson.address,
-                    updated_at: addressJson.updated_at
-                  })
-                  .eq('user_id', user.id);
-                
-                if (error) {
-                  console.error('Error updating address with JSON format:', error.message);
-                } else {
-                  console.log('Successfully updated address with JSON format');
-                }
-              } else {
-                // Insert with JSON format
-                console.log('Inserting address with JSON format');
-                const { error } = await supabase
-                  .from('addresses')
-                  .insert(addressJson);
-                
-                if (error) {
-                  console.error('Error inserting address with JSON format:', error.message);
-                } else {
-                  console.log('Successfully inserted address with JSON format');
-                }
-              }
-            } else if (tableStructure.schemaType === 'individual') {
-              // Use individual column approach - already defined in addressData
-              
-              // Check if user already has an address
-              const { data: existingAddresses } = await supabase
-                .from('addresses')
-                .select('id')
-                .eq('user_id', user.id);
-              
-              if (existingAddresses && existingAddresses.length > 0) {
-                // Update with individual columns
-                console.log('Updating address with individual columns');
-                const { error } = await supabase
-                  .from('addresses')
-                  .update(addressData)
-                  .eq('user_id', user.id);
-                
-                if (error) {
-                  console.error('Error updating address with individual columns:', error.message);
-                } else {
-                  console.log('Successfully updated address with individual columns');
-                }
-              } else {
-                // Insert with individual columns
-                console.log('Inserting address with individual columns');
-                const { error } = await supabase
-                  .from('addresses')
-                  .insert(addressData);
-                
-                if (error) {
-                  console.error('Error inserting address with individual columns:', error.message);
-                } else {
-                  console.log('Successfully inserted address with individual columns');
-                }
-              }
-            } else if (tableStructure.schemaType === 'profile') {
-              // Special case for profile schema with name fields
-              console.log('Using profile schema with name fields');
-              
-              // Check if user already has an address
-              const { data: existingAddresses } = await supabase
-                .from('addresses')
-                .select('id')
-                .eq('user_id', user.id);
-              
-              // Only include columns that exist in the table
-              const detectedColumns = tableStructure.detectedColumns || [];
-              const profileData: Record<string, string | null | Date | boolean> = {
-                user_id: user.id,
-                updated_at: new Date().toISOString(),
-                // Pflichtfelder mit Standardwerten, um NOT NULL Constraints zu erfüllen
-                first_name: profile.firstName || 'User',
-                last_name: profile.lastName || 'Unbekannt',
-                street_address: profile.address.street || 'Unbekannte Straße',
-                city: profile.address.city || 'Unbekannte Stadt',
-                state: profile.address.state || 'Unbekannter Staat',
-                postal_code: profile.address.postalCode || '00000',
-                phone: profile.phone || '000-000-0000',
-                country: profile.address.country || 'United States'
-              };
-              
-              // Optionale Felder nur hinzufügen, wenn sie existieren
-              if (detectedColumns.includes('apartment')) {
-                profileData.apartment = profile.address.apt || null;
-              }
-              
-              if (detectedColumns.includes('is_default_shipping')) {
-                profileData.is_default_shipping = true;
-              }
-              
-              if (detectedColumns.includes('is_default_billing')) {
-                profileData.is_default_billing = true;
-              }
-              
-              if (existingAddresses && existingAddresses.length > 0) {
-                // Update with profile schema
-                console.log('Updating address with profile schema');
-                const { error } = await supabase
-                  .from('addresses')
-                  .update(profileData)
-                  .eq('user_id', user.id);
-                
-                if (error) {
-                  console.error('Error updating address with profile schema:', error.message);
-                } else {
-                  console.log('Successfully updated address with profile schema');
-                }
-              } else {
-                // Insert with profile schema
-                console.log('Inserting address with profile schema');
-                const insertData = {
-                  ...profileData,
-                  created_at: new Date().toISOString()
-                };
-                
-                console.log('Insert data:', insertData);
-                
-                const { error } = await supabase
-                  .from('addresses')
-                  .insert(insertData);
-                
-                if (error) {
-                  console.error('Error inserting address with profile schema:', error.message);
-                } else {
-                  console.log('Successfully inserted address with profile schema');
-                }
-              }
-            } else {
-              // Minimal or unknown schema - just save what we know will work
-              console.log('Using minimal approach with only user_id');
-              
-              // Check if user already has an address
-              const { data: existingAddresses } = await supabase
-                .from('addresses')
-                .select('id')
-                .eq('user_id', user.id);
-              
-              if (existingAddresses && existingAddresses.length > 0) {
-                console.log('Address already exists - skipping minimal update');
-              } else {
-                // Insert with minimal fields - including first_name which is required
-                const { error } = await supabase
-                  .from('addresses')
-                  .insert({
-                    user_id: user.id,
-                    first_name: profile.firstName || 'User', // Add required field
-                    last_name: profile.lastName || '',       // Add potential field
-                    city: profile.address.city || '',
-                    state: profile.address.state || '',
-                    postal_code: profile.address.postalCode || '',
-                    country: profile.address.country || ''
-                  });
-                
-                if (error) {
-                  console.error('Error with minimal address insert:', error.message);
-                } else {
-                  console.log('Successfully inserted minimal address');
-                }
-              }
-            }
-          } else {
-            // Fallback to try each approach sequentially
-            console.log('No schema detection - trying fallback approaches');
-
-            // Try to directly create or update the address in a simpler way
-            const { error: structureError } = await supabase
-              .from('addresses')
-              .select('id')
-              .limit(1);
-            
-            if (structureError) {
-              console.error('Error with addresses table structure:', structureError.message);
-              // If there's a structure error, we try a different approach - update only metadata
-              console.log('Falling back to metadata-only approach');
-            } else {
-              console.log('Addresses table structure is valid');
-              
-              // Check if user already has an address
-              const { data: existingAddresses } = await supabase
-                .from('addresses')
-                .select('id')
-                .eq('user_id', user.id);
-              
-              console.log('Existing addresses:', existingAddresses);
-              
-              // ATTEMPT 2: Try with a combined address field
-              try {
-                if (existingAddresses && existingAddresses.length > 0) {
-                  // Update - try with original column names
-                  const { error: updateError } = await supabase
-                    .from('addresses')
-                    .update(addressData)
-                    .eq('user_id', user.id);
-                  
-                  if (updateError) {
-                    console.error('Error updating address with original columns:', updateError.message);
-                    
-                    // Try with a single 'address' column that might contain the whole address
-                    const { error: updateError2 } = await supabase
-                      .from('addresses')
-                      .update({
-                        address: JSON.stringify({
-                          street: profile.address.street || '',
-                          city: profile.address.city || '',
-                          state: profile.address.state || '',
-                          postalCode: profile.address.postalCode || '',
-                          country: profile.address.country || '',
-                          apt: profile.address.apt || '', // Add apt field
-                        }),
-                        updated_at: new Date().toISOString()
-                      })
-                      .eq('user_id', user.id);
-                    
-                    if (updateError2) {
-                      console.error('Error updating address with JSON field:', updateError2.message);
-                    } else {
-                      console.log('Address updated successfully with JSON field');
-                    }
-                  } else {
-                    console.log('Address updated successfully with original columns');
-                  }
-                } else {
-                  // Insert - try with original column names
-                  const { error: insertError } = await supabase
-                    .from('addresses')
-                    .insert(addressData);
-                  
-                  if (insertError) {
-                    console.error('Error inserting address with original columns:', insertError.message);
-                    
-                    // Try with a single 'address' column that might contain the whole address
-                    const { error: insertError2 } = await supabase
-                      .from('addresses')
-                      .insert({
-                        user_id: user.id,
-                        address: JSON.stringify({
-                          street: profile.address.street || '',
-                          city: profile.address.city || '',
-                          state: profile.address.state || '',
-                          postalCode: profile.address.postalCode || '',
-                          country: profile.address.country || '',
-                          apt: profile.address.apt || '', // Add apt field
-                        }),
-                        created_at: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                      });
-                    
-                    if (insertError2) {
-                      console.error('Error inserting address with JSON field:', insertError2.message);
-                      
-                      // ATTEMPT 3: Try with minimal fields
-                      const { error: insertError3 } = await supabase
-                        .from('addresses')
-                        .insert({
-                          user_id: user.id,
-                        });
-                      
-                      if (insertError3) {
-                        console.error('Error inserting address with minimal fields:', insertError3.message);
-                      } else {
-                        console.log('Address inserted successfully with minimal fields');
-                      }
-                    } else {
-                      console.log('Address inserted successfully with JSON field');
-                    }
-                  } else {
-                    console.log('Address inserted successfully with original columns');
-                  }
-                }
-              } catch (operationError) {
-                console.error('Operation error:', operationError);
-              }
-            }
-          }
-        } catch (addressError) {
-          console.error('Error handling address update/insert:', addressError);
-        }
-
-        console.log('Profile updated successfully with address information:', profile);
       }
       
       setIsEditing(false);
@@ -833,7 +505,7 @@ const ProfilePage = () => {
                       value={profile.email}
                       onChange={handleProfileChange}
                       className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      disabled={user?.app_metadata?.provider === 'google'} // Disable email editing for OAuth users
+                      disabled={user?.app_metadata?.provider === 'google'} 
                     />
                   ) : (
                     <p className="p-3 bg-gray-50 rounded-md text-gray-700">{profile.email}</p>
@@ -1025,7 +697,14 @@ const ProfilePage = () => {
                                 </span>
                               </td>
                               <td className="py-4 px-4">
-                                <button className="text-primary hover:text-primary/80 font-medium text-sm whitespace-nowrap">
+                                <button 
+                                  className="text-primary hover:text-primary/80 font-medium text-sm whitespace-nowrap"
+                                  onClick={() => {
+                                    // Navigate with state to ensure order ID is properly passed
+                                    console.log("Navigating to order details for ID:", order.id);
+                                    navigate(`/order-success/${order.id}`);
+                                  }}
+                                >
                                   View Details
                                 </button>
                               </td>
@@ -1065,9 +744,21 @@ const ProfilePage = () => {
                             </div>
                           </div>
                           
-                          <button className="w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-md text-sm font-medium transition-colors">
-                            View Order Details
-                          </button>
+                          <div className="flex justify-between mt-3">
+                            <span className="text-xs text-gray-500">
+                              {new Date(order.date).toLocaleDateString()}
+                            </span>
+                            <button 
+                              className="text-primary hover:text-primary/80 text-sm font-medium"
+                              onClick={() => {
+                                // Navigate with state to ensure order ID is properly passed
+                                console.log("Navigating to order details for ID:", order.id);
+                                navigate(`/order-success/${order.id}`);
+                              }}
+                            >
+                              View Details
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1119,7 +810,7 @@ const ProfilePage = () => {
                   </div>
                 </>
               ) : (
-                <div className="w-full">
+                <div>
                   <h3 className="font-semibold text-lg mb-4 text-white">Change Password</h3>
                   
                   {passwordSuccess && (
