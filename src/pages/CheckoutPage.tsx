@@ -329,8 +329,8 @@ const CheckoutPage = () => {
   if (items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="max-w-md mx-auto bg-dark-card rounded-lg shadow-md p-8 text-center border border-gray-800">
-          <h2 className="text-2xl font-bold mb-4 text-light">Ihr Warenkorb ist leer</h2>
+        <div className="max-w-md mx-auto bg-black rounded-lg shadow-md p-8 text-center border border-gray-800">
+          <h2 className="text-2xl font-bold mb-4 text-white">Ihr Warenkorb ist leer</h2>
           <p className="text-gray-400 mb-8">
             Bitte fügen Sie Artikel zu Ihrem Warenkorb hinzu, bevor Sie zur Kasse gehen.
           </p>
@@ -482,9 +482,9 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="bg-dark text-light min-h-screen py-12">
+    <div className="bg-black text-white min-h-screen py-12">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8 text-light">Checkout</h1>
+        <h1 className="text-3xl font-bold mb-8 text-white">Checkout</h1>
         
         {/* Checkout Steps */}
         <div className="mb-8">
@@ -505,11 +505,11 @@ const CheckoutPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2">
-            <div className="bg-dark-card rounded-lg shadow-md overflow-hidden border border-gray-800">
+            <div className="bg-black rounded-lg shadow-md overflow-hidden border border-gray-800">
               {/* Step 1: Shipping */}
               {step === 1 && (
                 <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6 text-light">Versandinformationen</h2>
+                  <h2 className="text-xl font-bold mb-6 text-white">Versandinformationen</h2>
                   
                   {isLoading ? (
                     <div className="flex justify-center py-8">
@@ -518,7 +518,7 @@ const CheckoutPage = () => {
                   ) : (
                     <div>
                       <div className="mb-6">
-                        <h3 className="font-semibold mb-3 text-light">Versandmethode</h3>
+                        <h3 className="font-semibold mb-3 text-white">Versandmethode</h3>
                         <div className="space-y-3">
                           <label className="flex items-center cursor-pointer">
                             <input
@@ -527,7 +527,7 @@ const CheckoutPage = () => {
                               value="shipping"
                               checked={deliveryMethod === 'shipping'}
                               onChange={() => setDeliveryMethod('shipping')}
-                              className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-dark"
+                              className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-black"
                             />
                             <span className="ml-2 text-gray-300">Lieferung (DHL)</span>
                           </label>
@@ -539,15 +539,15 @@ const CheckoutPage = () => {
                               value="pickup"
                               checked={deliveryMethod === 'pickup'}
                               onChange={() => setDeliveryMethod('pickup')}
-                              className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-dark"
+                              className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-black"
                             />
                             <span className="ml-2 text-gray-300">Abholung im Geschäft</span>
                           </label>
                         </div>
                         
                         {deliveryMethod === 'pickup' && (
-                          <div className="mt-4 p-4 bg-dark-lighter rounded-md border border-gray-700">
-                            <p className="font-medium text-light">Abholadresse:</p>
+                          <div className="mt-4 p-4 bg-gray-900 rounded-md border border-gray-700">
+                            <p className="font-medium text-white">Abholadresse:</p>
                             <p className="text-gray-400">{STORE_ADDRESS}</p>
                             <p className="text-gray-400 mt-2">
                               Bitte bringen Sie einen Identitätsnachweis mit, 
@@ -567,7 +567,7 @@ const CheckoutPage = () => {
                               <input
                                 type="text"
                                 id="firstName"
-                                className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 value={shippingAddress.firstName}
                                 onChange={(e) => setShippingAddress({...shippingAddress, firstName: e.target.value})}
                                 required
@@ -580,7 +580,7 @@ const CheckoutPage = () => {
                               <input
                                 type="text"
                                 id="lastName"
-                                className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 value={shippingAddress.lastName}
                                 onChange={(e) => setShippingAddress({...shippingAddress, lastName: e.target.value})}
                                 required
@@ -595,7 +595,7 @@ const CheckoutPage = () => {
                             <input
                               type="text"
                               id="address1"
-                              className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               value={shippingAddress.address1}
                               onChange={(e) => setShippingAddress({...shippingAddress, address1: e.target.value})}
                               required
@@ -609,7 +609,7 @@ const CheckoutPage = () => {
                             <input
                               type="text"
                               id="address2"
-                              className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               value={shippingAddress.address2 || ''}
                               onChange={(e) => setShippingAddress({...shippingAddress, address2: e.target.value})}
                             />
@@ -623,7 +623,7 @@ const CheckoutPage = () => {
                               <input
                                 type="text"
                                 id="postalCode"
-                                className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 value={shippingAddress.postalCode}
                                 onChange={(e) => setShippingAddress({...shippingAddress, postalCode: e.target.value})}
                                 required
@@ -636,7 +636,7 @@ const CheckoutPage = () => {
                               <input
                                 type="text"
                                 id="city"
-                                className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 value={shippingAddress.city}
                                 onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
                                 required
@@ -652,7 +652,7 @@ const CheckoutPage = () => {
                               <input
                                 type="text"
                                 id="state"
-                                className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 value={shippingAddress.state || ''}
                                 onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})}
                               />
@@ -663,7 +663,7 @@ const CheckoutPage = () => {
                               </label>
                               <select
                                 id="country"
-                                className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                                className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                                 value={shippingAddress.country}
                                 onChange={(e) => setShippingAddress({...shippingAddress, country: e.target.value})}
                                 required
@@ -682,7 +682,7 @@ const CheckoutPage = () => {
                             <input
                               type="tel"
                               id="phone"
-                              className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               value={shippingAddress.phone || ''}
                               onChange={(e) => setShippingAddress({...shippingAddress, phone: e.target.value})}
                               required
@@ -690,7 +690,7 @@ const CheckoutPage = () => {
                           </div>
                           
                           {error && (
-                            <div className="mb-4 p-3 bg-red-900/70 text-light rounded-md border border-red-700">
+                            <div className="mb-4 p-3 bg-red-900/70 text-white rounded-md border border-red-700">
                               {error}
                             </div>
                           )}
@@ -698,7 +698,7 @@ const CheckoutPage = () => {
                           <div className="flex justify-end">
                             <button
                               type="submit"
-                              className="px-6 py-3 bg-primary text-light font-medium rounded-md hover:bg-primary/80 transition-colors"
+                              className="px-6 py-3 bg-primary text-white font-medium rounded-md hover:bg-primary/80 transition-colors"
                               disabled={isProcessing}
                             >
                               {isProcessing ? (
@@ -724,11 +724,11 @@ const CheckoutPage = () => {
               {/* Step 2: Payment */}
               {step === 2 && (
                 <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6 text-light">Zahlungsinformationen</h2>
+                  <h2 className="text-xl font-bold mb-6 text-white">Zahlungsinformationen</h2>
                   
                   <form onSubmit={handlePaymentSubmit}>
                     <div className="mb-6">
-                      <h3 className="font-semibold mb-3 text-light">Zahlungsmethode</h3>
+                      <h3 className="font-semibold mb-3 text-white">Zahlungsmethode</h3>
                       <div className="space-y-3">
                         <label className="flex items-center cursor-pointer">
                           <input
@@ -737,7 +737,7 @@ const CheckoutPage = () => {
                             value="credit_card"
                             checked={paymentMethod === 'credit_card'}
                             onChange={() => setPaymentMethod('credit_card')}
-                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-dark"
+                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-black"
                           />
                           <span className="ml-2 text-gray-300">Kreditkarte</span>
                         </label>
@@ -749,7 +749,7 @@ const CheckoutPage = () => {
                             value="paypal"
                             checked={paymentMethod === 'paypal'}
                             onChange={() => setPaymentMethod('paypal')}
-                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-dark"
+                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-black"
                           />
                           <span className="ml-2 text-gray-300">PayPal</span>
                         </label>
@@ -761,7 +761,7 @@ const CheckoutPage = () => {
                             value="klarna"
                             checked={paymentMethod === 'klarna'}
                             onChange={() => setPaymentMethod('klarna')}
-                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-dark"
+                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-black"
                           />
                           <span className="ml-2 text-gray-300">Klarna</span>
                         </label>
@@ -773,7 +773,7 @@ const CheckoutPage = () => {
                             value="cash_on_delivery"
                             checked={paymentMethod === 'cash_on_delivery'}
                             onChange={() => setPaymentMethod('cash_on_delivery')}
-                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-dark"
+                            className="h-5 w-5 text-primary focus:ring-primary focus:ring-offset-black"
                           />
                           <span className="ml-2 text-gray-300">Nachnahme</span>
                         </label>
@@ -789,7 +789,7 @@ const CheckoutPage = () => {
                           <input
                             type="text"
                             id="cardName"
-                            className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             required
                           />
                         </div>
@@ -801,7 +801,7 @@ const CheckoutPage = () => {
                           <input
                             type="text"
                             id="cardNumber"
-                            className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                            className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                             placeholder="1234 5678 9012 3456"
                             required
                           />
@@ -815,7 +815,7 @@ const CheckoutPage = () => {
                             <input
                               type="text"
                               id="expiration"
-                              className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               placeholder="MM/YY"
                               required
                             />
@@ -827,7 +827,7 @@ const CheckoutPage = () => {
                             <input
                               type="text"
                               id="cvv"
-                              className="w-full p-3 border border-gray-700 rounded-md bg-dark-lighter text-light focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                              className="w-full p-3 border border-gray-700 rounded-md bg-gray-900 text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                               placeholder="123"
                               required
                             />
@@ -837,7 +837,7 @@ const CheckoutPage = () => {
                     )}
                     
                     {error && (
-                      <div className="mb-4 p-3 bg-red-900/70 text-light rounded-md border border-red-700">
+                      <div className="mb-4 p-3 bg-red-900/70 text-white rounded-md border border-red-700">
                         {error}
                       </div>
                     )}
@@ -845,14 +845,14 @@ const CheckoutPage = () => {
                     <div className="flex justify-between">
                       <button
                         type="button"
-                        className="px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-md hover:bg-dark-lighter transition-colors"
+                        className="px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-md hover:bg-gray-900 transition-colors"
                         onClick={() => setStep(1)}
                       >
                         Zurück
                       </button>
                       <button
                         type="submit"
-                        className="px-6 py-3 bg-primary text-light font-medium rounded-md hover:bg-primary/80 transition-colors"
+                        className="px-6 py-3 bg-primary text-white font-medium rounded-md hover:bg-primary/80 transition-colors"
                         disabled={isProcessing}
                       >
                         {isProcessing ? (
@@ -875,20 +875,20 @@ const CheckoutPage = () => {
               {/* Step 3: Review */}
               {step === 3 && (
                 <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6 text-light">Bestellübersicht</h2>
+                  <h2 className="text-xl font-bold mb-6 text-white">Bestellübersicht</h2>
                   
                   <div className="space-y-6">
                     <div>
                       <h3 className="font-semibold mb-3 text-primary">Versandinformationen</h3>
-                      <div className="bg-dark-lighter p-4 rounded-md border border-gray-700">
+                      <div className="bg-gray-900 p-4 rounded-md border border-gray-700">
                         {deliveryMethod === 'pickup' ? (
                           <div>
-                            <p className="font-medium text-light">Abholung im Geschäft</p>
+                            <p className="font-medium text-white">Abholung im Geschäft</p>
                             <p className="text-gray-400">{STORE_ADDRESS}</p>
                           </div>
                         ) : (
                           <div>
-                            <p className="text-light">{shippingAddress.firstName} {shippingAddress.lastName}</p>
+                            <p className="text-white">{shippingAddress.firstName} {shippingAddress.lastName}</p>
                             <p className="text-gray-400">{shippingAddress.address1}</p>
                             {shippingAddress.address2 && <p className="text-gray-400">{shippingAddress.address2}</p>}
                             <p className="text-gray-400">{shippingAddress.postalCode} {shippingAddress.city}</p>
@@ -902,8 +902,8 @@ const CheckoutPage = () => {
                     
                     <div>
                       <h3 className="font-semibold mb-3 text-primary">Zahlungsinformationen</h3>
-                      <div className="bg-dark-lighter p-4 rounded-md border border-gray-700">
-                        <p className="font-medium text-light">{getPaymentMethodName(paymentMethod)}</p>
+                      <div className="bg-gray-900 p-4 rounded-md border border-gray-700">
+                        <p className="font-medium text-white">{getPaymentMethodName(paymentMethod)}</p>
                         {paymentMethod === 'credit_card' && (
                           <p className="text-gray-400">**** **** **** 1234</p>
                         )}
@@ -912,10 +912,10 @@ const CheckoutPage = () => {
                     
                     <div>
                       <h3 className="font-semibold mb-3 text-primary">Bestellte Artikel</h3>
-                      <div className="bg-dark-lighter rounded-md border border-gray-700 divide-y divide-gray-700">
+                      <div className="bg-gray-900 rounded-md border border-gray-700 divide-y divide-gray-700">
                         {items.map((item) => (
                           <div key={item.id} className="p-4 flex items-center">
-                            <div className="w-16 h-16 bg-dark flex-shrink-0 mr-4">
+                            <div className="w-16 h-16 bg-black flex-shrink-0 mr-4">
                               <img
                                 src={item.image || '/images/product-placeholder.jpg'}
                                 alt={item.name}
@@ -923,7 +923,7 @@ const CheckoutPage = () => {
                               />
                             </div>
                             <div className="flex-grow">
-                              <h4 className="font-medium text-light">{item.name}</h4>
+                              <h4 className="font-medium text-white">{item.name}</h4>
                               <div className="flex justify-between text-sm text-gray-400">
                                 <span>Menge: {item.quantity}</span>
                                 <span>${(item.price * item.quantity).toFixed(2)}</span>
@@ -936,7 +936,7 @@ const CheckoutPage = () => {
                   </div>
                   
                   {error && (
-                    <div className="my-4 p-3 bg-red-900/70 text-light rounded-md border border-red-700">
+                    <div className="my-4 p-3 bg-red-900/70 text-white rounded-md border border-red-700">
                       {error}
                     </div>
                   )}
@@ -944,14 +944,14 @@ const CheckoutPage = () => {
                   <div className="flex justify-between mt-6">
                     <button
                       type="button"
-                      className="px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-md hover:bg-dark-lighter transition-colors"
+                      className="px-6 py-3 border border-gray-700 text-gray-300 font-medium rounded-md hover:bg-gray-900 transition-colors"
                       onClick={() => setStep(2)}
                     >
                       Zurück
                     </button>
                     <button
                       type="button"
-                      className="px-6 py-3 bg-primary text-light font-medium rounded-md hover:bg-primary/80 transition-colors"
+                      className="px-6 py-3 bg-primary text-white font-medium rounded-md hover:bg-primary/80 transition-colors"
                       onClick={handlePlaceOrder}
                       disabled={isProcessing}
                     >
@@ -975,18 +975,18 @@ const CheckoutPage = () => {
           
           {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-dark-card rounded-lg shadow-md p-6 sticky top-24 border border-gray-800">
-              <h2 className="text-xl font-bold mb-6 text-light">Zusammenfassung</h2>
+            <div className="bg-black rounded-lg shadow-md p-6 sticky top-24 border border-gray-800">
+              <h2 className="text-xl font-bold mb-6 text-white">Zusammenfassung</h2>
               
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Zwischensumme</span>
-                  <span className="text-light">${subtotal.toFixed(2)}</span>
+                  <span className="text-white">${subtotal.toFixed(2)}</span>
                 </div>
                 
                 <div className="flex justify-between">
                   <span className="text-gray-400">Versand</span>
-                  <span className="text-light">
+                  <span className="text-white">
                     {deliveryMethod === 'pickup' ? (
                       'Kostenlos'
                     ) : (
@@ -997,17 +997,17 @@ const CheckoutPage = () => {
                 
                 <div className="flex justify-between">
                   <span className="text-gray-400">Steuern (19%)</span>
-                  <span className="text-light">${tax.toFixed(2)}</span>
+                  <span className="text-white">${tax.toFixed(2)}</span>
                 </div>
                 
                 <div className="border-t border-gray-800 pt-4 flex justify-between font-bold">
-                  <span className="text-light">Gesamtsumme</span>
+                  <span className="text-white">Gesamtsumme</span>
                   <span className="text-primary">${total.toFixed(2)}</span>
                 </div>
               </div>
               
               {deliveryMethod === 'shipping' && !canFreeShipping && (
-                <div className="mb-6 p-3 bg-dark-lighter rounded-md border border-gray-700 text-sm text-gray-400">
+                <div className="mb-6 p-3 bg-gray-900 rounded-md border border-gray-700 text-sm text-gray-400">
                   <p>
                     {shippingAddress.postalCode && CLOSE_RADIUS_ZIP_CODES.includes(shippingAddress.postalCode) ? (
                       <>Kostenloser Versand ab ${DELIVERY_THRESHOLD_1.toFixed(2)}. Fügen Sie ${(DELIVERY_THRESHOLD_1 - subtotal).toFixed(2)} hinzu, um kostenlosen Versand zu erhalten.</>
@@ -1019,7 +1019,7 @@ const CheckoutPage = () => {
               )}
               
               <div className="space-y-4">
-                <h3 className="font-semibold text-light">Wir akzeptieren</h3>
+                <h3 className="font-semibold text-white">Wir akzeptieren</h3>
                 <div className="flex space-x-2">
                   <div className="w-10 h-6 bg-gray-800 rounded flex items-center justify-center text-xs text-gray-400">VISA</div>
                   <div className="w-10 h-6 bg-gray-800 rounded flex items-center justify-center text-xs text-gray-400">MC</div>

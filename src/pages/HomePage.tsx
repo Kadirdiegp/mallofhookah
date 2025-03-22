@@ -34,13 +34,13 @@ const HomePage = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-4">
           <Link 
-            to="/products" 
+            to="/hookahs" 
             className="px-8 py-3 bg-primary text-light font-semibold rounded-md hover:bg-accent transition-colors"
           >
             Shop Now
           </Link>
           <Link 
-            to="/products/featured" 
+            to="/accessories" 
             className="px-8 py-3 bg-transparent border border-light text-light font-semibold rounded-md hover:bg-dark-hover transition-colors"
           >
             View Featured
@@ -157,7 +157,7 @@ const HomePage = () => {
     <section className="py-16 bg-dark">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4 text-black">Subscribe to Our Newsletter</h2>
+          <h2 className="text-3xl font-bold mb-4 text-white">Subscribe to Our Newsletter</h2>
           <p className="text-gray-400 mb-8">
             Stay updated with our latest products, offers, and hookah tips.
           </p>
@@ -175,7 +175,7 @@ const HomePage = () => {
               Subscribe
             </button>
           </form>
-          <p className="text-gray-500 text-sm mt-4">
+          <p className="text-gray-400 text-sm mt-4">
             We respect your privacy. Unsubscribe at any time.
           </p>
         </div>

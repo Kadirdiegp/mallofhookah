@@ -181,10 +181,10 @@ const OrderSuccessPage = () => {
   
   if (isLoading) {
     return (
-      <div className="bg-light min-h-screen flex items-center justify-center">
+      <div className="bg-black min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-gray-600">Bestelldetails werden geladen...</p>
+          <p className="mt-4 text-white">Bestelldetails werden geladen...</p>
         </div>
       </div>
     );
@@ -192,18 +192,18 @@ const OrderSuccessPage = () => {
   
   if (error) {
     return (
-      <div className="bg-light min-h-screen flex items-center justify-center">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+      <div className="bg-black min-h-screen flex items-center justify-center">
+        <div className="max-w-md w-full bg-black rounded-lg shadow-md border border-gray-800 p-8 text-center">
           <div className="mb-6">
-            <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+            <div className="mx-auto w-16 h-16 bg-red-900 rounded-full flex items-center justify-center">
               <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
           </div>
           
-          <h1 className="text-2xl font-bold mb-4">Fehler</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+          <h1 className="text-2xl font-bold mb-4 text-white">Fehler</h1>
+          <p className="text-gray-400 mb-6">{error}</p>
           
           <div className="flex flex-col space-y-3">
             <Link 
@@ -214,7 +214,7 @@ const OrderSuccessPage = () => {
             </Link>
             <Link 
               to="/" 
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-md font-medium transition-colors"
+              className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
             >
               Zurück zur Startseite
             </Link>
@@ -225,38 +225,38 @@ const OrderSuccessPage = () => {
   }
   
   return (
-    <div className="bg-light min-h-screen py-12">
+    <div className="bg-black min-h-screen py-12">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="bg-black rounded-lg shadow-md border border-gray-800 p-8">
           <div className="mb-6 flex items-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4">
+            <div className="w-16 h-16 bg-green-900 rounded-full flex items-center justify-center mr-4">
               <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Bestellung erfolgreich aufgegeben!</h1>
-              <p className="text-gray-600">
-                Bestellnummer: <span className="font-medium">{orderDetails?.orderId || 'N/A'}</span>
+              <h1 className="text-2xl font-bold text-white">Bestellung erfolgreich aufgegeben!</h1>
+              <p className="text-gray-400">
+                Bestellnummer: <span className="font-medium text-white">{orderDetails?.orderId || 'N/A'}</span>
               </p>
             </div>
           </div>
           
-          <div className="border-b border-gray-200 pb-6 mb-6">
-            <p className="text-gray-600">
+          <div className="border-b border-gray-800 pb-6 mb-6">
+            <p className="text-gray-400">
               Vielen Dank für Ihre Bestellung. Wir haben eine Bestätigungs-E-Mail mit den Details an Ihre E-Mail-Adresse gesendet.
             </p>
           </div>
           
           {orderDetails && (
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Bestellübersicht</h2>
+              <h2 className="text-xl font-semibold mb-4 text-white">Bestellübersicht</h2>
               
-              <div className="bg-gray-50 rounded-lg p-6 mb-6">
+              <div className="bg-gray-900 rounded-lg p-6 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div>
-                    <h3 className="font-medium text-gray-500 mb-2">Zahlungsmethode</h3>
-                    <p className="font-medium">
+                    <h3 className="font-medium text-gray-400 mb-2">Zahlungsmethode</h3>
+                    <p className="font-medium text-white">
                       {orderDetails.orderData.paymentMethod === 'credit_card' && 'Kreditkarte'}
                       {orderDetails.orderData.paymentMethod === 'paypal' && 'PayPal'}
                       {orderDetails.orderData.paymentMethod === 'klarna' && 'Klarna'}
@@ -265,23 +265,23 @@ const OrderSuccessPage = () => {
                   </div>
                   
                   <div>
-                    <h3 className="font-medium text-gray-500 mb-2">Liefermethode</h3>
-                    <p className="font-medium">
+                    <h3 className="font-medium text-gray-400 mb-2">Liefermethode</h3>
+                    <p className="font-medium text-white">
                       {orderDetails.orderData.deliveryMethod === 'shipping' ? 'Versand' : 'Abholung im Geschäft'}
                     </p>
                   </div>
                   
                   <div>
-                    <h3 className="font-medium text-gray-500 mb-2">Gesamtsumme</h3>
-                    <p className="font-medium">{formatPrice(orderDetails.orderData.total)}</p>
+                    <h3 className="font-medium text-gray-400 mb-2">Gesamtsumme</h3>
+                    <p className="font-medium text-white">{formatPrice(orderDetails.orderData.total)}</p>
                   </div>
                 </div>
               </div>
               
               {orderDetails.orderData.shippingAddress && orderDetails.orderData.deliveryMethod === 'shipping' && (
                 <div className="mb-6">
-                  <h3 className="font-medium text-gray-700 mb-2">Lieferadresse</h3>
-                  <address className="not-italic">
+                  <h3 className="font-medium text-white mb-2">Lieferadresse</h3>
+                  <address className="not-italic text-gray-400">
                     {orderDetails.orderData.shippingAddress.firstName} {orderDetails.orderData.shippingAddress.lastName}<br />
                     {orderDetails.orderData.shippingAddress.address1}<br />
                     {orderDetails.orderData.shippingAddress.address2 && `${orderDetails.orderData.shippingAddress.address2}<br />`}
@@ -291,73 +291,75 @@ const OrderSuccessPage = () => {
                 </div>
               )}
               
-              <h3 className="font-medium text-gray-700 mb-3">Bestellte Artikel</h3>
-              <div className="border rounded-lg overflow-hidden mb-6">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Produkt
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Menge
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Preis
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Gesamt
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {orderDetails.orderData.items.map((item, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {item.product_id}
+              <h3 className="font-medium text-white mb-3">Bestellte Artikel</h3>
+              <div className="border border-gray-800 rounded-lg overflow-hidden mb-6">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-800">
+                    <thead className="bg-gray-900">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                          Produkt
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                          Menge
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                          Preis
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
+                          Gesamt
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-black divide-y divide-gray-800">
+                      {orderDetails.orderData.items.map((item, index) => (
+                        <tr key={index}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                            {item.product_id}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-right">
+                            {item.quantity}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400 text-right">
+                            {formatPrice(item.price_per_unit)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-white font-medium text-right">
+                            {formatPrice(item.total_price)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-gray-900">
+                      <tr>
+                        <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-gray-400"></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-400 text-right">
+                          Zwischensumme
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                          {item.quantity}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">
-                          {formatPrice(item.price_per_unit)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium text-right">
-                          {formatPrice(item.total_price)}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white text-right">
+                          {formatPrice(orderDetails.orderData.subtotal)}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-gray-50">
-                    <tr>
-                      <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 text-right">
-                        Zwischensumme
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
-                        {formatPrice(orderDetails.orderData.subtotal)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500 text-right">
-                        Versand
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 text-right">
-                        {formatPrice(orderDetails.orderData.total - orderDetails.orderData.subtotal)}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                        Gesamtsumme
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                        {formatPrice(orderDetails.orderData.total)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                      <tr>
+                        <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-gray-400"></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-400 text-right">
+                          Versand
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white text-right">
+                          {formatPrice(orderDetails.orderData.total - orderDetails.orderData.subtotal)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={2} className="px-6 py-4 whitespace-nowrap text-sm text-gray-400"></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-white text-right">
+                          Gesamtsumme
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-white text-right">
+                          {formatPrice(orderDetails.orderData.total)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -371,13 +373,13 @@ const OrderSuccessPage = () => {
             </Link>
             <Link 
               to="/" 
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-md font-medium transition-colors text-center"
+              className="flex-1 bg-gray-800 hover:bg-gray-700 text-white px-6 py-3 rounded-md font-medium transition-colors text-center"
             >
               Zurück zur Startseite
             </Link>
           </div>
           
-          <p className="text-sm text-gray-500 mt-8 text-center">
+          <p className="text-sm text-gray-400 mt-8 text-center">
             Sie werden in 30 Sekunden automatisch zur Startseite weitergeleitet.
           </p>
         </div>
