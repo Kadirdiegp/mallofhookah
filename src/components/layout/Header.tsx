@@ -81,12 +81,12 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button 
-            className="lg:hidden p-2 rounded-md bg-dark-card hover:bg-dark-hover focus:outline-none focus:ring-2 focus:ring-primary"
+            className="lg:hidden p-2 rounded-md bg-black hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-primary"
             onClick={toggleMenu}
           >
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6 text-light" 
+              className="h-6 w-6 text-white" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -258,49 +258,49 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="lg:hidden mt-4 py-4 border-t border-gray-600 bg-dark text-light">
-            <nav className="flex flex-col space-y-3">
+          <div className="lg:hidden mt-2 py-3 border-t border-gray-800 bg-black text-white">
+            <nav className="flex flex-col bg-black">
               <Link 
                 to="/hookahs" 
-                className="text-light hover:text-primary transition-colors"
+                className="text-white hover:text-primary transition-colors bg-black py-1.5"
                 onClick={toggleMenu}
               >
                 Hookahs
               </Link>
               <Link 
                 to="/vapes" 
-                className="text-light hover:text-primary transition-colors"
+                className="text-white hover:text-primary transition-colors bg-black py-1.5"
                 onClick={toggleMenu}
               >
                 Vapes
               </Link>
               <Link 
                 to="/tobacco" 
-                className="text-light hover:text-primary transition-colors"
+                className="text-white hover:text-primary transition-colors bg-black py-1.5"
                 onClick={toggleMenu}
               >
                 Tobacco
               </Link>
               <Link 
                 to="/accessories" 
-                className="text-light hover:text-primary transition-colors"
+                className="text-white hover:text-primary transition-colors bg-black py-1.5"
                 onClick={toggleMenu}
               >
                 Accessories
               </Link>
             </nav>
 
-            <form onSubmit={handleSearch} className="mt-4 relative">
+            <form onSubmit={handleSearch} className="mt-3 relative bg-black">
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full rounded-lg border border-gray-700 bg-dark-card py-2 px-4 text-sm text-light focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full rounded-lg border border-gray-700 bg-black py-2 px-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -319,15 +319,15 @@ const Header = () => {
               </button>
             </form>
 
-            <div className="mt-4 flex items-center space-x-6">
+            <div className="mt-3 flex flex-col bg-black">
               <Link 
                 to="/cart" 
-                className="relative text-light hover:text-primary transition-colors flex items-center"
+                className="text-white hover:text-primary transition-colors flex items-center bg-black py-1.5"
                 onClick={toggleMenu}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 mr-2"
+                  className="h-5 w-5 mr-2"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -339,34 +339,91 @@ const Header = () => {
                     d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                Cart
+                <span className="text-white bg-black">Cart</span>
                 {totalItems > 0 && (
                   <span className="ml-2 h-5 w-5 rounded-full bg-primary text-xs flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
               </Link>
-              <Link 
-                to="/login" 
-                className="text-light hover:text-primary transition-colors flex items-center"
-                onClick={toggleMenu}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+              
+              {user ? (
+                <div className="flex flex-col bg-black mt-2">
+                  <div className="flex items-center text-white bg-black">
+                    {getUserAvatar() ? (
+                      <img 
+                        src={getUserAvatar()} 
+                        alt="Profile" 
+                        className="h-6 w-6 rounded-full object-cover border border-gray-600 mr-2"
+                      />
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
+                      </svg>
+                    )}
+                    <span className="text-white bg-black">{getUserDisplayName()}</span>
+                  </div>
+                  
+                  <Link 
+                    to="/profile" 
+                    className="text-white hover:text-primary transition-colors pl-7 bg-black py-1.5"
+                    onClick={toggleMenu}
+                  >
+                    Your Profile
+                  </Link>
+                  
+                  <Link 
+                    to="/profile?tab=orders" 
+                    className="text-white hover:text-primary transition-colors pl-7 bg-black py-1.5"
+                    onClick={toggleMenu}
+                  >
+                    Your Orders
+                  </Link>
+                  
+                  <button
+                    onClick={() => {
+                      handleSignOut();
+                      toggleMenu();
+                    }}
+                    className="text-left text-white hover:text-primary transition-colors pl-7 bg-black py-1.5"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <Link 
+                  to="/login" 
+                  className="text-white hover:text-primary transition-colors flex items-center bg-black py-1.5"
+                  onClick={toggleMenu}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
-                Account
-              </Link>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                  <span className="text-white bg-black">Account</span>
+                </Link>
+              )}
             </div>
           </div>
         )}
