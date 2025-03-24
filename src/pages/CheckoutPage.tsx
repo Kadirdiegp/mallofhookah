@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cart';
 import { ShippingAddress } from '../types';
 import { supabase } from '../services/supabase';
-import { detectAddressTableColumns } from '../utils/detectAddressTableColumns';
-import { detectOrdersTableColumns, createOrdersTable } from '../utils/detectOrdersTableColumns';
 import { verifyAuthUserId } from '../utils/verifyAuth';
 
 // Konstanten für den Store
@@ -67,77 +65,21 @@ const CheckoutPage = () => {
         return null;
       }
       
-      // Vorbereiten der Adressdaten
-      const addressData = {
-        user_id: sessionData.session.user.id,
-        first_name: shippingAddress.firstName,
-        last_name: shippingAddress.lastName,
-        street_address: shippingAddress.address1,
-        apartment: shippingAddress.address2 || null,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        postal_code: shippingAddress.postalCode,
-        country: shippingAddress.country,
-        phone: shippingAddress.phone || '0000000000',
-        is_default_shipping: true,  // Als Standard-Lieferadresse setzen
-        is_default_billing: true    // Als Standard-Rechnungsadresse setzen
+      // Mit der neuen Struktur speichern wir die Adresse nicht mehr separat
+      // Stattdessen geben wir die formatierten Adressdaten zurück, die direkt in die Bestellung eingefügt werden
+      const formattedAddress = {
+        ...shippingAddress,
+        // Keine ID benötigt, da wir nicht mehr in einer separaten Tabelle speichern
       };
       
-      console.log('Speichere Adresse:', addressData);
+      console.log('Formatierte Adresse für Bestellung:', formattedAddress);
       
-      // Adresse in der Datenbank speichern
-      const { data: addressResult, error: addressError } = await supabase
-        .from('addresses')
-        .insert(addressData)
-        .select();
-        
-      if (addressError) {
-        console.error('Fehler beim Speichern der Adresse:', addressError);
-        return null;
-      }
-      
-      console.log('Adresse erfolgreich gespeichert:', addressResult);
-      
-      // Wenn die Adresse erfolgreich gespeichert wurde, ID zurückgeben
-      if (addressResult && addressResult.length > 0) {
-        return {
-          ...shippingAddress,
-          id: addressResult[0].id
-        };
-      }
-      
-      return null;
+      return formattedAddress;
     } catch (error) {
-      console.error('Unerwarteter Fehler beim Speichern der Adresse:', error);
+      console.error('Unerwarteter Fehler beim Formatieren der Adresse:', error);
       return null;
     }
   }
-
-  // Prüfen, ob die orders-Tabelle existiert und ggf. erstellen
-  useEffect(() => {
-    const checkOrdersTable = async () => {
-      try {
-        // Zuerst prüfen, ob die Tabelle überhaupt existiert
-        const { error } = await supabase
-          .from('orders')
-          .select('*')
-          .limit(1);
-          
-        if (error && error.code === '42P01') {
-          console.log('Orders-Tabelle existiert nicht, erstelle sie...');
-          await createOrdersTable(supabase);
-        } else {
-          // Wenn die Tabelle existiert, prüfen wir die Struktur
-          const orderSchema = await detectOrdersTableColumns(supabase);
-          console.log('Orders-Tabelle Schema erkannt:', orderSchema);
-        }
-      } catch (error) {
-        console.error('Fehler beim Prüfen der orders-Tabelle:', error);
-      }
-    };
-    
-    checkOrdersTable();
-  }, []);
 
   // Lade Benutzeradresse beim Seitenaufruf
   useEffect(() => {
@@ -151,119 +93,71 @@ const CheckoutPage = () => {
         const { data: userData } = await supabase.auth.getUser();
         const user = userData?.user;
         
-        console.log('Benutzer gefunden:', user?.id);
-        
-        if (user) {
-          // Spaltenstruktur der addresses-Tabelle erkennen
-          const tableStructure = await detectAddressTableColumns();
-          console.log('Erkannte Tabellenstruktur:', tableStructure);
-          
-          // Profil des Benutzers abrufen
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-            
-          if (profileError) {
-            console.error('Fehler beim Laden des Profils:', profileError);
-          }
-          
-          console.log('Profildaten gefunden:', profileData);
-          
-          // Bei auth.users die Metadaten anschauen
-          const { data: userMetadata, error: userMetadataError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-            
-          if (userMetadataError) {
-            console.error('Fehler beim Laden der User-Metadaten:', userMetadataError);
-          } else {
-            console.log('User-Metadaten:', userMetadata);
-          }
+        if (user?.id) {
+          console.log('Benutzer gefunden:', user.id);
           
           // Hole die raw metadata aus der Auth-Session
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
           if (sessionError) {
             console.error('Fehler beim Laden der Session:', sessionError);
-          } else if (session) {
-            console.log('User raw metadata:', session.user.user_metadata);
-            
-            // Versuche, Daten aus den user_metadata zu extrahieren
+            return;
+          }
+          
+          if (session?.user?.user_metadata) {
+            console.log('User metadata gefunden, extrahiere Adressinformationen');
             const metadata = session.user.user_metadata;
-            if (metadata) {
-              console.log('Versuche, Daten aus user_metadata zu extrahieren:', metadata);
-            }
-          }
-          
-          // Adresse des Benutzers abrufen
-          const { data: addressData, error: addressError } = await supabase
-            .from('addresses')
-            .select('*')
-            .eq('user_id', user.id)
-            .single();
             
-          if (addressError) {
-            console.error('Fehler beim Laden der Adresse:', addressError);
-          }
-          
-          console.log('Adressdaten gefunden:', addressData);
-            
-          if (profileData || addressData || (session?.user?.user_metadata)) {
-            // Daten für das Formular aufbereiten - speziell auf die Straße achten
-            const metadata = session?.user?.user_metadata || {};
-            
+            // Adressdaten aus user_metadata extrahieren
             const newShippingAddress = {
-              firstName: (addressData?.first_name || profileData?.first_name || metadata.first_name || metadata.name || metadata.given_name || ''),
-              lastName: (addressData?.last_name || profileData?.last_name || metadata.last_name || metadata.family_name || ''),
-              // Straße könnte in unterschiedlichen Feldern gespeichert sein
-              address1: (addressData?.street_address || addressData?.street || 
-                       (profileData?.address_street ? profileData.address_street : 
-                       (profileData?.address?.street ? profileData.address.street : 
-                       (metadata.address?.street || metadata.street_address || '')))),
-              address2: (addressData?.apartment || addressData?.apt || 
-                       (profileData?.address_apt ? profileData.address_apt : 
-                       (profileData?.address?.apt ? profileData.address.apt : 
-                       (metadata.address?.apt || metadata.apartment || '')))),
-              city: (addressData?.city || 
-                    (profileData?.address_city ? profileData.address_city : 
-                    (profileData?.address?.city ? profileData.address.city : 
-                    (metadata.address?.city || metadata.city || '')))),
-              state: (addressData?.state || 
-                     (profileData?.address_state ? profileData.address_state : 
-                     (profileData?.address?.state ? profileData.address.state : 
-                     (metadata.address?.state || metadata.state || '')))),
-              postalCode: (addressData?.postal_code || 
-                          (profileData?.address_postal_code ? profileData.address_postal_code : 
-                          (profileData?.address?.postalCode ? profileData.address.postalCode : 
-                          (metadata.address?.postal_code || metadata.postal_code || metadata.zip_code || metadata.zip || '')))),
-              country: (addressData?.country || 
-                       (profileData?.address_country ? profileData.address_country : 
-                       (profileData?.address?.country ? profileData.address.country : 
-                       (metadata.address?.country || metadata.country || 'DE')))),
-              phone: (addressData?.phone || profileData?.phone || metadata.phone || '')
+              firstName: metadata.first_name || 
+                        metadata.name || 
+                        metadata.given_name || 
+                        user.email?.split('@')[0] || '',
+              lastName: metadata.last_name || 
+                       metadata.family_name || '',
+              address1: metadata.address?.street || 
+                       metadata.street_address || 
+                       metadata.address || '',
+              address2: metadata.address?.apt || 
+                       metadata.apartment || '',
+              city: metadata.address?.city || 
+                   metadata.city || 
+                   metadata.address_city || '',
+              state: metadata.address?.state || 
+                    metadata.state || 
+                    metadata.address_state || '',
+              postalCode: metadata.address?.postal_code || 
+                         metadata.postal_code || 
+                         metadata.zip_code || 
+                         metadata.zip || 
+                         metadata.address_postal_code || '',
+              country: metadata.address?.country || 
+                      metadata.country || 
+                      metadata.address_country || 
+                      'DE',
+              phone: metadata.phone || 
+                    metadata.telephone || 
+                    metadata.mobile || ''
             };
             
             console.log('Setze Adressdaten:', newShippingAddress);
             setShippingAddress(newShippingAddress);
           } else {
-            console.log('Keine Profil- oder Adressdaten gefunden');
+            console.log('Keine User-Metadaten gefunden, verwende leeres Formular');
           }
         } else {
-          console.log('Kein Benutzer angemeldet');
+          console.log('Kein Benutzer gefunden, verwende leeres Formular');
         }
       } catch (error) {
-        console.error('Fehler beim Laden der Benutzerdaten:', error);
+        console.error('Fehler beim Laden der Adressdaten:', error);
       } finally {
         setIsLoading(false);
       }
     };
     
     loadUserAddress();
-  }, []);
-  
+  }, [setIsLoading]);
+
   // Calculate totals
   const subtotal = totalPrice();
   const tax = subtotal * 0.19; // 19% MwSt in Deutschland
@@ -362,13 +256,14 @@ const CheckoutPage = () => {
     setError(null);
     
     try {
-      // Wenn eine Lieferadresse angegeben wurde, speichern wir sie
+      // Wenn eine Lieferadresse angegeben wurde, speichern wir sie nicht mehr separat
+      // Stattdessen formatieren wir sie für die Einbettung in die Bestellung
       let updatedShippingAddress = shippingAddress;
       if (deliveryMethod === 'shipping') {
-        // Adresse in der Datenbank speichern
-        const savedAddress = await saveShippingAddressToDatabase();
-        if (savedAddress) {
-          updatedShippingAddress = savedAddress;
+        // Format address for order
+        const formattedAddress = await saveShippingAddressToDatabase();
+        if (formattedAddress) {
+          updatedShippingAddress = formattedAddress;
         }
       }
       
@@ -385,94 +280,135 @@ const CheckoutPage = () => {
         sessionExpiresAt: sessionData?.session?.expires_at 
       });
       
-      // Schema der orders-Tabelle erkennen
-      const orderSchema = await detectOrdersTableColumns(supabase);
-      console.log('Order schema detected:', orderSchema);
+      // Aktuelle Session für Debugging ausgeben
+      console.log('Aktuelle Session:', {
+        userId,
+        sessionExpiresAt: sessionData?.session?.expires_at 
+      });
       
-      const cartItems = items.map(item => ({
-        ...item,
-        totalPrice: (item.quantity * item.price).toFixed(2)
+      // Die neue SECURITY DEFINER Funktion verwenden, um die Bestellung zu erstellen
+      const { data: orderResult, error: orderError } = await supabase
+        .rpc('create_reseller_order', {
+          p_user_id: userId,
+          p_status: 'pending',
+          p_customer_name: `${updatedShippingAddress.firstName} ${updatedShippingAddress.lastName}`,
+          p_customer_email: sessionData?.session?.user?.email || '',
+          p_customer_phone: updatedShippingAddress.phone || '',
+          
+          // Lieferadresse
+          p_shipping_name: `${updatedShippingAddress.firstName} ${updatedShippingAddress.lastName}`,
+          p_shipping_street: updatedShippingAddress.address1,
+          p_shipping_apartment: updatedShippingAddress.address2 || '',
+          p_shipping_city: updatedShippingAddress.city,
+          p_shipping_state: updatedShippingAddress.state || '',
+          p_shipping_postal_code: updatedShippingAddress.postalCode,
+          p_shipping_country: updatedShippingAddress.country,
+          p_shipping_phone: updatedShippingAddress.phone || '',
+          
+          // Rechnungsadresse (gleich wie Lieferadresse da wir keine separate haben)
+          p_billing_name: `${updatedShippingAddress.firstName} ${updatedShippingAddress.lastName}`,
+          p_billing_street: updatedShippingAddress.address1,
+          p_billing_apartment: updatedShippingAddress.address2 || '',
+          p_billing_city: updatedShippingAddress.city,
+          p_billing_state: updatedShippingAddress.state || '',
+          p_billing_postal_code: updatedShippingAddress.postalCode,
+          p_billing_country: updatedShippingAddress.country,
+          p_billing_phone: updatedShippingAddress.phone || '',
+          
+          // Bestellsummen
+          p_subtotal: subtotal,
+          p_tax: tax,
+          p_shipping_cost: shipping,
+          p_discount: 0,
+          p_total_amount: total,
+          p_currency: 'EUR',
+          
+          // Zahlungs- und Versanddetails
+          p_payment_method: paymentMethod,
+          p_payment_status: 'pending',
+          p_shipping_method: 'standard',
+          p_notes: '',
+          p_source: 'website'
+        });
+      
+      if (orderError) {
+        console.error('Fehler beim Erstellen der Bestellung:', orderError);
+        setError(`Fehler beim Erstellen der Bestellung: ${orderError.message}`);
+        setIsProcessing(false);
+        return;
+      }
+      
+      if (!orderResult) {
+        setError('Fehler beim Erstellen der Bestellung: Keine Bestelldaten zurückgegeben');
+        setIsProcessing(false);
+        return;
+      }
+      
+      const orderId = orderResult;
+      
+      // Bestellpositionen nacheinander erstellen
+      let hasItemErrors = false;
+      
+      for (const item of items) {
+        const { error: itemError } = await supabase
+          .rpc('add_reseller_order_item', {
+            p_order_id: orderId,
+            p_product_id: item.id,
+            p_product_name: item.name,
+            p_product_sku: '',
+            p_variant_name: '',
+            p_quantity: item.quantity,
+            p_unit_price: item.price,
+            p_discount: 0,
+            p_tax_rate: 19,
+            p_subtotal: item.price * item.quantity
+          });
+        
+        if (itemError) {
+          console.error('Fehler beim Hinzufügen einer Bestellposition:', itemError);
+          hasItemErrors = true;
+        }
+      }
+      
+      if (hasItemErrors) {
+        setError('Einige Bestellpositionen konnten nicht hinzugefügt werden');
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Die Bestellpositionen für die Anzeige auf der Erfolgsseite formatieren
+      const orderItems = items.map(item => ({
+        order_id: orderId,
+        product_id: item.id,
+        product_name: item.name,
+        product_sku: '',
+        quantity: item.quantity,
+        unit_price: item.price,
+        subtotal: item.price * item.quantity,
+        tax_rate: 19,
+        discount: 0
       }));
       
-      try {
-        // Erstellen der Bestellung
-        const { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .insert({
-            user_id: userId,
-            status: paymentMethod === 'cash_on_delivery' ? 'pending_payment' : 'processing',
-            payment_method: paymentMethod,
-            subtotal: subtotal,
-            total_amount: total + shipping,
-            ...(deliveryMethod === 'shipping' && updatedShippingAddress && updatedShippingAddress.id 
-              ? { 
-                  shipping_address_id: updatedShippingAddress.id,
-                  billing_address_id: updatedShippingAddress.id 
-                } 
-              : {})
-          })
-          .select();
-        
-        if (orderError) {
-          console.error('Fehler beim Erstellen der Bestellung:', orderError);
-          setError(`Fehler beim Erstellen der Bestellung: ${orderError.message}`);
-          setIsProcessing(false);
-          return;
-        }
-
-        // Order ID extrahieren
-        const orderId = orderData?.[0]?.id;
-        console.log('Bestellung erfolgreich erstellt:', orderId);
-        
-        if (!orderId) {
-          console.error('Keine orderId zurückgegeben');
-          setError('Ein Fehler ist aufgetreten, es wurde keine Bestellungs-ID zurückgegeben.');
-          setIsProcessing(false);
-          return;
-        }
-
-        // Bestellpositionen erstellen
-        const orderItems = cartItems.map(item => ({
-          order_id: orderId,
-          product_id: item.productId || item.id, // Verwenden Sie beide möglichen ID-Referenzen
-          quantity: item.quantity,
-          price_per_unit: item.price,
-          total_price: item.price * item.quantity
-        }));
-
-        console.log('Erstellte Bestellpositionen:', orderItems);
-
-        // Einfügen der Bestellpositionen
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItems);
-
-        if (itemsError) {
-          console.error('Fehler beim Erstellen der Bestellpositionen:', itemsError);
-          // Fehler protokollieren, aber nicht abbrechen
-        }
-        
-        // Bestellung erfolgreich, zum Erfolgsbildschirm navigieren
-        clearCart();
-        navigate('/checkout/success', { 
-          state: { 
-            orderId,
-            orderData: {
-              items: orderItems,
-              total: total + shipping,
-              subtotal,
-              paymentMethod,
-              deliveryMethod,
-              shippingAddress: updatedShippingAddress
-            }
+      // Warenkorb leeren nach erfolgreicher Bestellung
+      clearCart();
+      
+      // Status auf Erfolg setzen
+      setIsProcessing(false);
+      
+      // Umleitung zur Bestellbestätigungsseite
+      navigate('/checkout/success', { 
+        state: { 
+          orderId,
+          orderData: {
+            items: orderItems,
+            total: total + shipping,
+            subtotal,
+            paymentMethod,
+            deliveryMethod,
+            shippingAddress: updatedShippingAddress
           }
-        });
-      } catch (error) {
-        console.error('Unerwarteter Fehler beim Erstellen der Bestellung:', error);
-        setError('Ein unerwarteter Fehler ist aufgetreten');
-      } finally {
-        setIsProcessing(false);
-      }
+        }
+      });
     } catch (error) {
       console.error('Unerwarteter Fehler beim Erstellen der Bestellung:', error);
       setError('Ein unerwarteter Fehler ist aufgetreten');

@@ -1,575 +1,707 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  Container, 
+  Paper, 
+  Typography, 
+  Box, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Button, 
+  IconButton, 
+  Chip, 
+  TextField, 
+  InputAdornment, 
+  CircularProgress, 
+  Dialog, 
+  DialogTitle, 
+  DialogContent,
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import { format } from 'date-fns';
+import { supabase } from '../../services/supabase';
 
-// Mock orders data
-const mockOrders = [
-  {
-    id: 'ORD-9876',
-    customer: {
-      name: 'Emily Wilson',
-      email: 'emily.wilson@example.com',
-      id: 'cust-001'
-    },
-    date: '2023-08-15T14:32:00Z',
-    total: 145.99,
-    status: 'Pending',
-    items: [
-      { id: 'prod001', name: 'Premium Hookah - Gold Edition', quantity: 1, price: 149.99 }
-    ],
-    payment: 'Credit Card',
-    shipping: 'Standard'
-  },
-  {
-    id: 'ORD-9875',
-    customer: {
-      name: 'Michael Brown',
-      email: 'michael.brown@example.com',
-      id: 'cust-002'
-    },
-    date: '2023-08-14T10:15:00Z',
-    total: 89.50,
-    status: 'Processing',
-    items: [
-      { id: 'prod002', name: 'Mint Flavor Shisha - 250g', quantity: 2, price: 24.99 },
-      { id: 'prod003', name: 'Natural Coconut Hookah Coals - 1kg', quantity: 1, price: 19.99 }
-    ],
-    payment: 'PayPal',
-    shipping: 'Express'
-  },
-  {
-    id: 'ORD-9874',
-    customer: {
-      name: 'Sophia Lee',
-      email: 'sophia.lee@example.com',
-      id: 'cust-003'
-    },
-    date: '2023-08-14T09:22:00Z',
-    total: 210.75,
-    status: 'Shipped',
-    items: [
-      { id: 'prod009', name: 'Compact Hookah - Travel Size', quantity: 1, price: 89.99 },
-      { id: 'prod002', name: 'Mint Flavor Shisha - 250g', quantity: 1, price: 24.99 },
-      { id: 'prod007', name: 'Apple Flavor Shisha - 250g', quantity: 1, price: 24.99 },
-      { id: 'prod005', name: 'Premium Silicone Hose', quantity: 1, price: 29.99 },
-      { id: 'prod006', name: 'Hookah Cleaning Brush Set', quantity: 1, price: 14.99 },
-      { id: 'prod008', name: 'Hookah Bowl - Clay', quantity: 1, price: 12.99 }
-    ],
-    payment: 'Credit Card',
-    shipping: 'Standard'
-  },
-  {
-    id: 'ORD-9873',
-    customer: {
-      name: 'Daniel Martinez',
-      email: 'daniel.martinez@example.com',
-      id: 'cust-004'
-    },
-    date: '2023-08-13T16:45:00Z',
-    total: 65.25,
-    status: 'Delivered',
-    items: [
-      { id: 'prod007', name: 'Apple Flavor Shisha - 250g', quantity: 1, price: 24.99 },
-      { id: 'prod008', name: 'Hookah Bowl - Clay', quantity: 2, price: 12.99 }
-    ],
-    payment: 'Credit Card',
-    shipping: 'Standard'
-  },
-  {
-    id: 'ORD-9872',
-    customer: {
-      name: 'Olivia Johnson',
-      email: 'olivia.johnson@example.com',
-      id: 'cust-005'
-    },
-    date: '2023-08-12T11:30:00Z',
-    total: 120.00,
-    status: 'Delivered',
-    items: [
-      { id: 'prod005', name: 'Premium Silicone Hose', quantity: 2, price: 29.99 },
-      { id: 'prod002', name: 'Mint Flavor Shisha - 250g', quantity: 1, price: 24.99 },
-      { id: 'prod003', name: 'Natural Coconut Hookah Coals - 1kg', quantity: 1, price: 19.99 }
-    ],
-    payment: 'PayPal',
-    shipping: 'Express'
-  },
-  {
-    id: 'ORD-9871',
-    customer: {
-      name: 'James Wilson',
-      email: 'james.wilson@example.com',
-      id: 'cust-006'
-    },
-    date: '2023-08-11T14:20:00Z',
-    total: 174.97,
-    status: 'Delivered',
-    items: [
-      { id: 'prod010', name: 'Premium Hookah - Silver Edition', quantity: 1, price: 139.99 },
-      { id: 'prod006', name: 'Hookah Cleaning Brush Set', quantity: 1, price: 14.99 },
-      { id: 'prod008', name: 'Hookah Bowl - Clay', quantity: 1, price: 12.99 }
-    ],
-    payment: 'Credit Card',
-    shipping: 'Standard'
-  },
-  {
-    id: 'ORD-9870',
-    customer: {
-      name: 'Emma Davis',
-      email: 'emma.davis@example.com',
-      id: 'cust-007'
-    },
-    date: '2023-08-10T09:15:00Z',
-    total: 79.97,
-    status: 'Delivered',
-    items: [
-      { id: 'prod002', name: 'Mint Flavor Shisha - 250g', quantity: 1, price: 24.99 },
-      { id: 'prod007', name: 'Apple Flavor Shisha - 250g', quantity: 1, price: 24.99 },
-      { id: 'prod003', name: 'Natural Coconut Hookah Coals - 1kg', quantity: 1, price: 19.99 }
-    ],
-    payment: 'PayPal',
-    shipping: 'Standard'
-  },
-  {
-    id: 'ORD-9869',
-    customer: {
-      name: 'Noah Thompson',
-      email: 'noah.thompson@example.com',
-      id: 'cust-008'
-    },
-    date: '2023-08-09T15:45:00Z',
-    total: 224.95,
-    status: 'Delivered',
-    items: [
-      { id: 'prod001', name: 'Premium Hookah - Gold Edition', quantity: 1, price: 149.99 },
-      { id: 'prod002', name: 'Mint Flavor Shisha - 250g', quantity: 2, price: 24.99 },
-      { id: 'prod003', name: 'Natural Coconut Hookah Coals - 1kg', quantity: 1, price: 19.99 }
-    ],
-    payment: 'Credit Card',
-    shipping: 'Express'
-  }
-];
+interface DatabaseOrder {
+  id: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  status: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone?: string;
+  
+  // Shipping address directly embedded
+  shipping_name: string;
+  shipping_street: string;
+  shipping_apartment?: string;
+  shipping_city: string;
+  shipping_state: string;
+  shipping_postal_code: string;
+  shipping_country: string;
+  shipping_phone?: string;
+  
+  // Billing address directly embedded
+  billing_name: string;
+  billing_street: string;
+  billing_apartment?: string;
+  billing_city: string;
+  billing_state: string;
+  billing_postal_code: string;
+  billing_country: string;
+  billing_phone?: string;
+  
+  // Financial info
+  subtotal: number;
+  tax: number;
+  shipping_cost: number;
+  discount: number;
+  total_amount: number;
+  currency: string;
+  
+  // Payment info
+  payment_method: string;
+  payment_status: string;
+  
+  // Shipping info
+  shipping_method?: string;
+  tracking_number?: string;
+  shipping_carrier?: string;
+  
+  // Metadata
+  notes?: string;
+  admin_notes?: string;
+}
+
+interface OrderItem {
+  id: string;
+  order_id: string;
+  product_id?: string;
+  product_name: string;
+  product_sku?: string;
+  variant_name?: string;
+  quantity: number;
+  unit_price: number;
+  discount: number;
+  subtotal: number;
+}
 
 const OrdersPage = () => {
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [dateSort, setDateSort] = useState('desc');
-  
-  // Filter and sort orders
-  const filteredOrders = mockOrders
+  const [orders, setOrders] = useState<DatabaseOrder[]>([]);
+  const [orderItems, setOrderItems] = useState<{[key: string]: OrderItem[]}>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<DatabaseOrder | null>(null);
+  const [orderDialogOpen, setOrderDialogOpen] = useState(false);
+
+  const formatAddress = (order: DatabaseOrder, type: 'shipping' | 'billing') => {
+    const prefix = type === 'shipping' ? 'shipping' : 'billing';
+    return {
+      name: order[`${prefix}_name`],
+      street: order[`${prefix}_street`],
+      apartment: order[`${prefix}_apartment`],
+      city: order[`${prefix}_city`],
+      state: order[`${prefix}_state`],
+      postal_code: order[`${prefix}_postal_code`],
+      country: order[`${prefix}_country`],
+      phone: order[`${prefix}_phone`]
+    };
+  };
+
+  const copyAddressToClipboard = (order: DatabaseOrder, type: 'shipping' | 'billing') => {
+    const addressObj = formatAddress(order, type);
+    
+    const formattedAddress = `${addressObj.name}\n${addressObj.street}${addressObj.apartment ? ', ' + addressObj.apartment : ''}\n${addressObj.city}, ${addressObj.state} ${addressObj.postal_code}\n${addressObj.country}${addressObj.phone ? '\nPhone: ' + addressObj.phone : ''}`;
+    
+    navigator.clipboard.writeText(formattedAddress);
+    setCopiedAddress(`${order.id}_${type}`);
+    
+    setTimeout(() => {
+      setCopiedAddress('');
+    }, 2000);
+  };
+
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // First try to use the admin function
+      const { data: orders, error } = await supabase.rpc('admin_get_all_reseller_orders');
+
+      // If that doesn't work, fall back to direct query
+      if (error) {
+        console.log('Falling back to direct query:', error);
+        const { data, error: queryError } = await supabase
+          .from('reseller_orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (queryError) {
+          throw queryError;
+        }
+        
+        if (data) {
+          setOrders(data);
+          calculateAndSetMetrics(data);
+        }
+      } else if (orders) {
+        setOrders(orders);
+        calculateAndSetMetrics(orders);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setError('Failed to fetch orders. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchOrderItems = async (orderId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('reseller_order_items')
+        .select('*')
+        .eq('order_id', orderId);
+
+      if (error) {
+        throw error;
+      }
+
+      if (data) {
+        setOrderItems(prev => ({
+          ...prev,
+          [orderId]: data
+        }));
+      }
+    } catch (error) {
+      console.error(`Error fetching order items for order ${orderId}:`, error);
+    }
+  };
+
+  const calculateAndSetMetrics = (orders: DatabaseOrder[]) => {
+    const metrics = {
+      totalOrders: orders.length,
+      pendingOrders: orders.filter(order => order.status === 'pending_payment').length,
+      completedOrders: orders.filter(order => order.status === 'completed').length,
+      totalRevenue: orders.reduce((sum, order) => sum + order.total_amount, 0)
+    };
+    setMetrics(metrics);
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy h:mm a');
+    } catch (error) { 
+      console.error('Error formatting date:', error);
+      return dateString;
+    }
+  };
+
+  const getStatusChipColor = (status: string): "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning" => {
+    const statusMap: Record<string, "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"> = {
+      'pending': 'warning',
+      'processing': 'info',
+      'shipped': 'primary',
+      'delivered': 'success',
+      'cancelled': 'error',
+      'pending_payment': 'warning',
+      'completed': 'success'
+    };
+    
+    return statusMap[status.toLowerCase()] || 'default';
+  };
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const toggleOrderExpand = (orderId: string) => {
+    if (expandedOrderId === orderId) {
+      setExpandedOrderId(null);
+    } else {
+      setExpandedOrderId(orderId);
+      if (!orderItems[orderId]) {
+        fetchOrderItems(orderId);
+      }
+    }
+  };
+
+  const openOrderDialog = (order: DatabaseOrder) => {
+    setSelectedOrder(order);
+    setOrderDialogOpen(true);
+  };
+
+  const closeOrderDialog = () => {
+    setSelectedOrder(null);
+    setOrderDialogOpen(false);
+  };
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortField, setSortField] = useState('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [metrics, setMetrics] = useState({
+    totalOrders: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    totalRevenue: 0
+  });
+
+  const filteredOrders = orders
     .filter(order => {
-      // By search query (order ID or customer name/email)
       const matchesSearch = 
-        order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.customer.email.toLowerCase().includes(searchQuery.toLowerCase());
+        order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.user_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+        (order.customer_email?.toLowerCase().includes(searchTerm.toLowerCase()) || false) ||
+        order.payment_method.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // By status
-      const matchesStatus = statusFilter === 'All' || order.status === statusFilter;
+      const matchesStatus = statusFilter === 'all' || order.status.toLowerCase() === statusFilter.toLowerCase();
       
       return matchesSearch && matchesStatus;
     })
     .sort((a, b) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
-      return dateSort === 'desc' ? dateB - dateA : dateA - dateB;
+      const sortValueA = a[sortField as keyof DatabaseOrder];
+      const sortValueB = b[sortField as keyof DatabaseOrder];
+
+      if (typeof sortValueA === 'string' && typeof sortValueB === 'string') {
+        return sortDirection === 'asc' 
+          ? sortValueA.localeCompare(sortValueB)
+          : sortValueB.localeCompare(sortValueA);
+      } else if (typeof sortValueA === 'number' && typeof sortValueB === 'number') {
+        return sortDirection === 'asc' 
+          ? sortValueA - sortValueB
+          : sortValueB - sortValueA;
+      }
+      
+      return 0;
     });
-  
-  // Get the selected order
-  const selectedOrder = selectedOrderId 
-    ? mockOrders.find(order => order.id === selectedOrderId) 
-    : null;
-  
-  // Helper to get status color
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'processing':
-        return 'bg-blue-100 text-blue-800';
-      case 'shipped':
-        return 'bg-purple-100 text-purple-800';
-      case 'delivered':
-        return 'bg-green-100 text-green-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-  
-  // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
-  };
-  
-  // Update order status
-  const handleUpdateStatus = (orderId: string, newStatus: string) => {
-    // In a real app, this would call an API to update the status
-    console.log(`Updating order ${orderId} status to ${newStatus}`);
-    setSelectedOrderId(null);
-  };
 
   return (
-    <div className="bg-light min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold">Orders Management</h1>
-          <button className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md transition-colors">
-            Export Orders
-          </button>
-        </div>
-        
-        {/* Filter and Search Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
-                Search Orders
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  id="search"
-                  className="pl-10 w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="Search by order ID or customer..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                Order Status
-              </label>
-              <select
-                id="status"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Orders Management
+      </Typography>
+
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ p: 2 }}>
+            <Typography color="textSecondary" gutterBottom>
+              Total Orders
+            </Typography>
+            <Typography variant="h4">{metrics.totalOrders}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ p: 2 }}>
+            <Typography color="textSecondary" gutterBottom>
+              Pending Orders
+            </Typography>
+            <Typography variant="h4" color="warning.main">{metrics.pendingOrders}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ p: 2 }}>
+            <Typography color="textSecondary" gutterBottom>
+              Completed Orders
+            </Typography>
+            <Typography variant="h4" color="success.main">{metrics.completedOrders}</Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <Paper sx={{ p: 2 }}>
+            <Typography color="textSecondary" gutterBottom>
+              Total Revenue
+            </Typography>
+            <Typography variant="h4" color="primary.main">{formatCurrency(metrics.totalRevenue)}</Typography>
+          </Paper>
+        </Grid>
+      </Grid>
+
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Search Orders"
+              value={searchTerm}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Filter by Status</InputLabel>
+              <Select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                label="Filter by Status"
+                onChange={(e: SelectChangeEvent) => setStatusFilter(e.target.value as string)}
               >
-                <option value="All">All Statuses</option>
-                <option value="Pending">Pending</option>
-                <option value="Processing">Processing</option>
-                <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
-            
-            <div>
-              <label htmlFor="dateSort" className="block text-sm font-medium text-gray-700 mb-2">
-                Date Sort
-              </label>
-              <select
-                id="dateSort"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                value={dateSort}
-                onChange={(e) => setDateSort(e.target.value)}
-              >
-                <option value="desc">Newest First</option>
-                <option value="asc">Oldest First</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        {/* Orders Table */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Order ID
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Total
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.map((order) => (
-                  <tr 
-                    key={order.id} 
-                    className={`hover:bg-gray-50 ${selectedOrderId === order.id ? 'bg-blue-50' : ''}`}
-                    onClick={() => setSelectedOrderId(selectedOrderId === order.id ? null : order.id)}
+                <MenuItem value="all">All Statuses</MenuItem>
+                <MenuItem value="pending_payment">Pending Payment</MenuItem>
+                <MenuItem value="processing">Processing</MenuItem>
+                <MenuItem value="completed">Completed</MenuItem>
+                <MenuItem value="cancelled">Cancelled</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} md={5} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              startIcon={<KeyboardArrowUpIcon />}
+              onClick={() => fetchOrders()}
+              disabled={loading}
+            >
+              Refresh
+            </Button>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {error && (
+        <Paper sx={{ p: 2, mb: 3, bgcolor: 'error.light' }}>
+          <Typography color="error">{error}</Typography>
+        </Paper>
+      )}
+
+      <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+        {loading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+            <CircularProgress />
+          </Box>
+        ) : filteredOrders.length === 0 ? (
+          <Box sx={{ p: 4, textAlign: 'center' }}>
+            <Typography variant="h6" color="textSecondary">
+              No orders found
+            </Typography>
+          </Box>
+        ) : (
+          <TableContainer sx={{ maxHeight: 'calc(100vh - 350px)' }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox"></TableCell>
+                  <TableCell 
+                    onClick={() => handleSort('id')}
+                    sx={{ cursor: 'pointer', fontWeight: 'bold' }}
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {order.id}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{order.customer.name}</div>
-                      <div className="text-xs text-gray-500">{order.customer.email}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(order.date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${order.total.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button 
-                        className="text-primary hover:text-primary/80 mr-3"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedOrderId(order.id);
-                        }}
-                      >
-                        View
-                      </button>
-                      <button 
-                        className="text-gray-600 hover:text-gray-900"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Print or download invoice
-                          console.log(`Print invoice for order ${order.id}`);
-                        }}
-                      >
-                        Invoice
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                
-                {filteredOrders.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <div className="text-gray-500">
-                        <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                        <h3 className="mt-2 text-lg font-medium text-gray-900">No orders found</h3>
-                        <p className="mt-1 text-sm text-gray-500">
-                          Try adjusting your search or filter to find what you're looking for.
-                        </p>
-                        <button
-                          className="mt-4 text-primary hover:text-primary/80 font-medium"
-                          onClick={() => {
-                            setSearchQuery('');
-                            setStatusFilter('All');
-                          }}
-                        >
-                          Clear all filters
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination */}
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-            <div className="flex-1 flex justify-between sm:hidden">
-              <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Previous
-              </button>
-              <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                Next
-              </button>
-            </div>
-            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-              <div>
-                <p className="text-sm text-gray-700">
-                  Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredOrders.length}</span> of{' '}
-                  <span className="font-medium">{filteredOrders.length}</span> results
-                </p>
-              </div>
-              <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Previous</span>
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                  <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-primary text-sm font-medium text-white">
-                    1
-                  </button>
-                  <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                    <span className="sr-only">Next</span>
-                    <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Order Details (visible when an order is selected) */}
-        {selectedOrder && (
-          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-            <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Order Details: {selectedOrder.id}</h2>
-                <button 
-                  className="text-gray-500 hover:text-gray-700"
-                  onClick={() => setSelectedOrderId(null)}
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-            
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Customer Information</h3>
-                  <p className="font-medium">{selectedOrder.customer.name}</p>
-                  <p className="text-gray-600">{selectedOrder.customer.email}</p>
-                  <p className="text-gray-600">Customer ID: {selectedOrder.customer.id}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Order Information</h3>
-                  <p className="text-gray-600">Date: {formatDate(selectedOrder.date)}</p>
-                  <p className="text-gray-600">Payment Method: {selectedOrder.payment}</p>
-                  <p className="text-gray-600">Shipping Method: {selectedOrder.shipping}</p>
-                  <div className="mt-2">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>
-                      {selectedOrder.status}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-4">Order Items</h3>
-              <div className="overflow-x-auto mb-6">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Product
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Price
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantity
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {selectedOrder.items.map((item, index) => (
-                      <tr key={`${item.id}-${index}`}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                          <div className="text-xs text-gray-500">ID: {item.id}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          ${item.price.toFixed(2)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {item.quantity}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ${(item.price * item.quantity).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-gray-50">
-                    <tr>
-                      <td colSpan={3} className="px-6 py-4 text-sm font-medium text-gray-900 text-right">
-                        Subtotal:
-                      </td>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                        ${selectedOrder.total.toFixed(2)}
-                      </td>
-                    </tr>
-                    {/* You could add shipping, tax, etc. rows here */}
-                    <tr>
-                      <td colSpan={3} className="px-6 py-4 text-base font-bold text-gray-900 text-right">
-                        Total:
-                      </td>
-                      <td className="px-6 py-4 text-base font-bold text-gray-900">
-                        ${selectedOrder.total.toFixed(2)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-4 mt-6 pt-6 border-t border-gray-200">
-                <div className="sm:flex-1">
-                  <label htmlFor="updateStatus" className="block text-sm font-medium text-gray-700 mb-2">
-                    Update Order Status
-                  </label>
-                  <div className="flex">
-                    <select
-                      id="updateStatus"
-                      className="flex-1 p-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary"
-                      defaultValue={selectedOrder.status}
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Processing">Processing</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Delivered">Delivered</option>
-                      <option value="Cancelled">Cancelled</option>
-                    </select>
-                    <button
-                      className="px-4 py-2 bg-primary text-white rounded-r-md hover:bg-primary/90 transition-colors"
+                    Order ID
+                    {sortField === 'id' && (
+                      sortDirection === 'asc' ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />
+                    )}
+                  </TableCell>
+                  <TableCell 
+                    onClick={() => handleSort('created_at')}
+                    sx={{ cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Date
+                    {sortField === 'created_at' && (
+                      sortDirection === 'asc' ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />
+                    )}
+                  </TableCell>
+                  <TableCell 
+                    onClick={() => handleSort('user_id')}
+                    sx={{ cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Customer
+                    {sortField === 'user_id' && (
+                      sortDirection === 'asc' ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />
+                    )}
+                  </TableCell>
+                  <TableCell 
+                    onClick={() => handleSort('status')}
+                    sx={{ cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Status
+                    {sortField === 'status' && (
+                      sortDirection === 'asc' ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />
+                    )}
+                  </TableCell>
+                  <TableCell 
+                    onClick={() => handleSort('payment_method')}
+                    sx={{ cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    Payment
+                    {sortField === 'payment_method' && (
+                      sortDirection === 'asc' ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />
+                    )}
+                  </TableCell>
+                  <TableCell 
+                    onClick={() => handleSort('total_amount')}
+                    sx={{ cursor: 'pointer', fontWeight: 'bold', textAlign: 'right' }}
+                  >
+                    Total
+                    {sortField === 'total_amount' && (
+                      sortDirection === 'asc' ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />
+                    )}
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredOrders.map((order) => (
+                  <React.Fragment key={order.id}>
+                    <TableRow 
+                      hover 
                       onClick={() => {
-                        const select = document.getElementById('updateStatus') as HTMLSelectElement;
-                        handleUpdateStatus(selectedOrder.id, select.value);
+                        toggleOrderExpand(order.id);
                       }}
+                      sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'action.hover' } }}
                     >
-                      Update
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex gap-4">
-                  <button className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
-                    Print Invoice
-                  </button>
-                  <button className="px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 transition-colors">
-                    Send Notification
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+                      <TableCell padding="checkbox">
+                        <IconButton size="small">
+                          {expandedOrderId === order.id ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                        </IconButton>
+                      </TableCell>
+                      <TableCell>{order.id.slice(0, 8)}...</TableCell>
+                      <TableCell>{formatDate(order.created_at)}</TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                          {order.customer_name || 'Unknown'}
+                        </Typography>
+                        <Typography variant="caption" color="textSecondary">
+                          {order.customer_email || order.user_id.slice(0, 8) + '...'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={order.status} 
+                          color={getStatusChipColor(order.status) as "default" | "primary" | "secondary" | "error" | "info" | "success" | "warning"}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>{order.payment_method}</TableCell>
+                      <TableCell align="right">
+                        {formatCurrency(order.total_amount)}
+                        <Button
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openOrderDialog(order);
+                          }}
+                          sx={{ ml: 1 }}
+                        >
+                          <LocalShippingIcon fontSize="small" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                    {expandedOrderId === order.id && (
+                      <TableRow>
+                        <TableCell colSpan={7}>
+                          <Box sx={{ p: 2, bgcolor: 'background.paper' }}>
+                            <Grid container spacing={2}>
+                              <Grid item xs={12} md={6}>
+                                <Paper sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
+                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                      Shipping Address
+                                    </Typography>
+                                    <IconButton 
+                                      size="small" 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        copyAddressToClipboard(order, 'shipping');
+                                      }}
+                                      color={copiedAddress === `${order.id}_shipping` ? 'success' : 'default'}
+                                    >
+                                      <ContentCopyIcon fontSize="small" />
+                                    </IconButton>
+                                  </Box>
+                                  <Typography variant="body1"><strong>{order.shipping_name}</strong></Typography>
+                                  <Typography variant="body2">{order.shipping_street}</Typography>
+                                  {order.shipping_apartment && (
+                                    <Typography variant="body2">Apt: {order.shipping_apartment}</Typography>
+                                  )}
+                                  <Typography variant="body2">
+                                    {order.shipping_city}, {order.shipping_state} {order.shipping_postal_code}
+                                  </Typography>
+                                  <Typography variant="body2">{order.shipping_country}</Typography>
+                                  {order.shipping_phone && (
+                                    <Typography variant="body2">Phone: {order.shipping_phone}</Typography>
+                                  )}
+                                </Paper>
+                              </Grid>
+                              <Grid item xs={12} md={6}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>Customer Info</Typography>
+                                <Typography variant="body2"><strong>Name:</strong> {order.customer_name}</Typography>
+                                <Typography variant="body2"><strong>Email:</strong> {order.customer_email}</Typography>
+                                {order.customer_phone && (
+                                  <Typography variant="body2"><strong>Phone:</strong> {order.customer_phone}</Typography>
+                                )}
+                                <Typography variant="body2"><strong>User ID:</strong> {order.user_id}</Typography>
+                              </Grid>
+                              <Grid item xs={12}>
+                                <Typography variant="h6" gutterBottom>Order Items</Typography>
+                                {orderItems[order.id] ? (
+                                  <Table size="small">
+                                    <TableHead>
+                                      <TableRow>
+                                        <TableCell>Product</TableCell>
+                                        <TableCell>Quantity</TableCell>
+                                        <TableCell>Price</TableCell>
+                                        <TableCell>Total</TableCell>
+                                      </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                      {orderItems[order.id].map((item) => (
+                                        <TableRow key={item.id}>
+                                          <TableCell>{item.product_name}</TableCell>
+                                          <TableCell>{item.quantity}</TableCell>
+                                          <TableCell>{formatCurrency(item.unit_price)}</TableCell>
+                                          <TableCell>{formatCurrency(item.subtotal)}</TableCell>
+                                        </TableRow>
+                                      ))}
+                                    </TableBody>
+                                  </Table>
+                                ) : (
+                                  <CircularProgress size={24} />
+                                )}
+                              </Grid>
+                            </Grid>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
-      </div>
-    </div>
+      </Paper>
+
+      {/* Order Details Dialog */}
+      <Dialog 
+        open={orderDialogOpen} 
+        onClose={closeOrderDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        {selectedOrder && (
+          <>
+            <DialogTitle>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5" component="div">
+                  Order #{selectedOrder.id.substring(0, 8)}
+                </Typography>
+                <Chip 
+                  label={selectedOrder.status.toUpperCase()} 
+                  color={getStatusChipColor(selectedOrder.status)}
+                  sx={{ fontWeight: 'bold' }}
+                />
+              </Box>
+            </DialogTitle>
+            <DialogContent>
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" gutterBottom>
+                    <strong>Date:</strong> {new Date(selectedOrder.created_at).toLocaleString()}
+                  </Typography>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                        Shipping Address
+                      </Typography>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => copyAddressToClipboard(selectedOrder, 'shipping')}
+                        color={copiedAddress === `${selectedOrder.id}_shipping` ? 'success' : 'default'}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                    <Typography variant="body1"><strong>{selectedOrder.shipping_name}</strong></Typography>
+                    <Typography variant="body2">{selectedOrder.shipping_street}</Typography>
+                    {selectedOrder.shipping_apartment && (
+                      <Typography variant="body2">Apt: {selectedOrder.shipping_apartment}</Typography>
+                    )}
+                    <Typography variant="body2">
+                      {selectedOrder.shipping_city}, {selectedOrder.shipping_state} {selectedOrder.shipping_postal_code}
+                    </Typography>
+                    <Typography variant="body2">{selectedOrder.shipping_country}</Typography>
+                    {selectedOrder.shipping_phone && (
+                      <Typography variant="body2">Phone: {selectedOrder.shipping_phone}</Typography>
+                    )}
+                  </Paper>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ p: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>
+                      Customer Information
+                    </Typography>
+                    <Typography variant="body2"><strong>Name:</strong> {selectedOrder.customer_name}</Typography>
+                    <Typography variant="body2"><strong>Email:</strong> {selectedOrder.customer_email}</Typography>
+                    {selectedOrder.customer_phone && (
+                      <Typography variant="body2"><strong>Phone:</strong> {selectedOrder.customer_phone}</Typography>
+                    )}
+                    <Typography variant="body2"><strong>User ID:</strong> {selectedOrder.user_id}</Typography>
+                  </Paper>
+                </Grid>
+                
+                <Grid item xs={12}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+                    <Typography variant="h6">Order Details</Typography>
+                    <Chip 
+                      label={selectedOrder.status.toUpperCase()} 
+                      color={getStatusChipColor(selectedOrder.status)}
+                      size="small"
+                    />
+                  </Box>
+                  <Typography variant="body2" sx={{ mt: 1 }}><strong>Payment Method:</strong> {selectedOrder.payment_method}</Typography>
+                  <Typography variant="body2"><strong>Payment Status:</strong> {selectedOrder.payment_status}</Typography>
+                  {selectedOrder.tracking_number && (
+                    <Typography variant="body2"><strong>Tracking Number:</strong> {selectedOrder.tracking_number}</Typography>
+                  )}
+                  {selectedOrder.shipping_carrier && (
+                    <Typography variant="body2"><strong>Shipping Carrier:</strong> {selectedOrder.shipping_carrier}</Typography>
+                  )}
+                </Grid>
+              </Grid>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
+    </Container>
   );
 };
 

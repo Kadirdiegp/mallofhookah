@@ -6,39 +6,55 @@ import { SupabaseClient } from '@supabase/supabase-js';
 type ColumnStatus = 'exists' | 'error' | 'unknown';
 
 /**
- * Erkennt die Struktur der orders-Tabelle
+ * Erkennt die Struktur der reseller_orders-Tabelle
  */
 export async function detectOrdersTableColumns(supabase: SupabaseClient): Promise<{
   columnsStatus: Record<string, ColumnStatus>;
   detectedColumns: string[];
-  schemaType: 'json' | 'columnar' | 'mixed' | 'minimal' | 'unknown';
+  schemaType: 'embedded' | 'minimal' | 'unknown';
 }> {
-  console.log('Detecting orders table column structure...');
+  console.log('Detecting reseller_orders table column structure...');
   
-  // Mögliche Spaltennamen in der Tabelle
+  // Mögliche Spaltennamen in der Tabelle für das neue reseller_orders Schema
   const possibleColumns = [
     'id', 
-    'user_id', 
-    'data',
-    'order_data',
-    'order_json',
-    'items',
-    'items_json',
+    'user_id',
+    'created_at',
+    'updated_at',
+    'status',
+    'customer_name',
+    'customer_email',
+    'customer_phone',
+    'shipping_name',
+    'shipping_street',
+    'shipping_apartment',
+    'shipping_city',
+    'shipping_state',
+    'shipping_postal_code',
+    'shipping_country',
+    'shipping_phone',
+    'billing_name',
+    'billing_street',
+    'billing_apartment',
+    'billing_city',
+    'billing_state',
+    'billing_postal_code',
+    'billing_country',
+    'billing_phone',
     'subtotal',
     'tax',
-    'shipping',
-    'shipping_fee',
-    'total',
+    'shipping_cost',
+    'discount',
+    'total_amount',
+    'currency',
     'payment_method',
-    'delivery_method',
-    'status',
-    'shipping_address',
-    'shipping_address_json',
-    'shipping_address_id',
-    'billing_address_id',
-    'pickup_location',
-    'created_at',
-    'updated_at'
+    'payment_status',
+    'shipping_method',
+    'tracking_number',
+    'shipping_carrier',
+    'notes',
+    'admin_notes',
+    'source'
   ];
   
   const columnsStatus: Record<string, ColumnStatus> = {};
@@ -52,7 +68,7 @@ export async function detectOrdersTableColumns(supabase: SupabaseClient): Promis
       );
       
       const queryPromise = supabase
-        .from('orders')
+        .from('reseller_orders')
         .select(column)
         .limit(1);
         
@@ -81,26 +97,17 @@ export async function detectOrdersTableColumns(supabase: SupabaseClient): Promis
   console.log(`Detected columns: (${detectedColumns.length}) ${JSON.stringify(detectedColumns)}`);
   
   // Bestimme den Schema-Typ
-  let schemaType: 'json' | 'columnar' | 'mixed' | 'minimal' | 'unknown' = 'unknown';
+  let schemaType: 'embedded' | 'minimal' | 'unknown' = 'unknown';
   
-  if (detectedColumns.includes('data') || detectedColumns.includes('order_data') || detectedColumns.includes('order_json')) {
-    schemaType = 'json';
-  } else if (
-    detectedColumns.includes('items_json') && 
-    detectedColumns.includes('subtotal') && 
-    detectedColumns.includes('total')
+  // Für das neue Schema mit eingebetteten Adressen
+  if (
+    detectedColumns.includes('shipping_name') &&
+    detectedColumns.includes('shipping_street') &&
+    detectedColumns.includes('billing_name')
   ) {
-    schemaType = 'columnar';
-  } else if (
-    detectedColumns.includes('shipping_address_id') &&
-    detectedColumns.includes('billing_address_id') &&
-    detectedColumns.includes('subtotal')
-  ) {
-    schemaType = 'columnar';
-  } else if (detectedColumns.length <= 3) {
+    schemaType = 'embedded';
+  } else if (detectedColumns.length <= 5) {
     schemaType = 'minimal';
-  } else if (detectedColumns.length > 0) {
-    schemaType = 'mixed';
   }
   
   console.log(`Schema type: ${schemaType}`);
@@ -110,69 +117,4 @@ export async function detectOrdersTableColumns(supabase: SupabaseClient): Promis
     detectedColumns,
     schemaType
   };
-}
-
-/**
- * Erstellt die orders-Tabelle nach dem erkannten Schema
- */
-export async function createOrdersTable(supabase: SupabaseClient, schemaType: string = 'columnar') {
-  console.log(`Creating orders table with schema type: ${schemaType}...`);
-  
-  let query = '';
-  
-  if (schemaType === 'json') {
-    query = `
-      CREATE TABLE IF NOT EXISTS public.orders (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        user_id UUID REFERENCES auth.users(id) NOT NULL,
-        data JSONB,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      );
-    `;
-  } else {
-    // Standard-Spaltenstruktur
-    query = `
-      CREATE TABLE IF NOT EXISTS public.orders (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        user_id UUID REFERENCES auth.users(id) NOT NULL,
-        items_json JSONB,
-        subtotal DECIMAL(10, 2),
-        tax DECIMAL(10, 2),
-        shipping_fee DECIMAL(10, 2),
-        total DECIMAL(10, 2),
-        payment_method TEXT,
-        delivery_method TEXT,
-        status TEXT DEFAULT 'pending',
-        shipping_address_json JSONB,
-        pickup_location TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      );
-    `;
-  }
-  
-  // RLS aktivieren
-  query += `
-    ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
-    
-    CREATE POLICY IF NOT EXISTS "Users can view their own orders" 
-      ON public.orders
-      FOR SELECT
-      USING (auth.uid() = user_id);
-    
-    CREATE POLICY IF NOT EXISTS "Users can insert their own orders" 
-      ON public.orders
-      FOR INSERT
-      WITH CHECK (auth.uid() = user_id);
-  `;
-  
-  const { error } = await supabase.rpc('exec_sql', { sql: query });
-  
-  if (error) {
-    console.error('Error creating orders table:', error);
-    return { success: false, error };
-  }
-  
-  return { success: true };
 }

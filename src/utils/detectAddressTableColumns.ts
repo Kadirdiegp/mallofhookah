@@ -1,10 +1,13 @@
 import { supabase } from '../services/supabase';
 
 /**
- * Utility to detect the actual column structure of the addresses table
+ * Utility to detect address information from reseller_orders table
+ * 
+ * With the new schema, addresses are directly embedded in the orders table.
+ * This utility now retrieves address data from the most recent order.
  */
 export async function detectAddressTableColumns() {
-  console.log('Detecting addresses table column structure...');
+  console.log('Detecting address information from reseller_orders...');
   
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
@@ -12,71 +15,66 @@ export async function detectAddressTableColumns() {
     console.error('No authenticated user found');
     return null;
   }
-  
-  // Try to check columns one by one to detect the actual structure
-  const possibleColumns = [
-    'id', 'user_id', 'address', 'street', 'street_address', 'city', 'state', 
-    'postal_code', 'postalCode', 'zip', 'zip_code', 'country', 
-    'created_at', 'updated_at', 'first_name', 'last_name'
-  ];
-  
-  const columnsStatus: Record<string, boolean> = {};
-  const detectedColumns: string[] = [];
-  
-  for (const column of possibleColumns) {
-    try {
-      // Try to select just this column
-      const { error } = await supabase
-        .from('addresses')
-        .select(column)
-        .limit(1);
-      
-      // Record whether this column exists
-      columnsStatus[column] = !error;
-      
-      if (error) {
-        // Check if the error is related to column not existing
-        const isColumnError = error.message.includes(`column "${column}" does not exist`) ||
-                              error.message.includes(`relation "addresses" does not exist`) ||
-                              error.message.includes(`Could not find the "${column}" column`);
-        
-        console.log(`Column '${column}': ${isColumnError ? 'NOT EXISTS (confirmed)' : 'ERROR (unknown)'}`);
-      } else {
-        console.log(`Column '${column}': EXISTS`);
-        detectedColumns.push(column);
-      }
-    } catch (e) {
-      console.error(`Error checking column '${column}':`, e);
-      columnsStatus[column] = false;
+
+  try {
+    // Instead of checking address columns, we look for the last order with address data
+    const { data: latestOrder, error } = await supabase
+      .from('reseller_orders')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    if (error) {
+      console.error('Error fetching latest order:', error);
+      return {
+        tableStructure: 'embedded_in_orders',
+        message: 'Addresses are now embedded in orders table',
+        error: error.message
+      };
     }
+    
+    if (latestOrder && latestOrder.length > 0) {
+      const order = latestOrder[0];
+      
+      // Check if we have shipping address fields in the order
+      const hasShippingAddress = 
+        order.shipping_name && 
+        order.shipping_street && 
+        order.shipping_city && 
+        order.shipping_postal_code;
+      
+      console.log('Address data found in latest order:', hasShippingAddress);
+      
+      return {
+        tableStructure: 'embedded_in_orders',
+        hasShippingAddress,
+        lastOrderId: order.id,
+        shippingInfo: {
+          name: order.shipping_name,
+          street: order.shipping_street,
+          apartment: order.shipping_apartment,
+          city: order.shipping_city,
+          state: order.shipping_state,
+          postalCode: order.shipping_postal_code,
+          country: order.shipping_country,
+          phone: order.shipping_phone
+        }
+      };
+    } else {
+      console.log('No orders found for user, no address data available');
+      return {
+        tableStructure: 'embedded_in_orders',
+        hasShippingAddress: false,
+        message: 'No previous orders found with address data'
+      };
+    }
+  } catch (e) {
+    console.error('Error in detectAddressTableColumns:', e);
+    return {
+      tableStructure: 'error',
+      message: e instanceof Error ? e.message : 'Unknown error',
+      error: e
+    };
   }
-  
-  // Determine likely table structure
-  console.log('----------------------------------------');
-  console.log('Detected columns:', detectedColumns);
-  
-  // Determine schema type
-  let schemaType = 'unknown';
-  
-  if (columnsStatus['first_name']) {
-    schemaType = 'profile';
-    console.log('Schema type: Profile (includes name fields)');
-  } else if (columnsStatus['address'] && !columnsStatus['street']) {
-    schemaType = 'json';
-    console.log('Schema type: JSON (single address field)');
-  } else if (columnsStatus['street'] && columnsStatus['city']) {
-    schemaType = 'individual';
-    console.log('Schema type: Individual columns');
-  } else if (columnsStatus['user_id']) {
-    schemaType = 'minimal';
-    console.log('Schema type: Minimal (only has user_id)');
-  } else {
-    console.log('Schema type: Unknown or table does not exist');
-  }
-  
-  return {
-    columnsStatus,
-    detectedColumns,
-    schemaType
-  };
 }
